@@ -5,3 +5,4 @@ data/*.csv
 .env
 dist/
 .vscode/
+src/firebase-config.js
