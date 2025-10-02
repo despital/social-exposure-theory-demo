@@ -15,7 +15,7 @@ export function generateFaces() {
         faces.push({
             id: i,
             color: 'red',
-            imagePath: `stimuli/red_face_${String(i).padStart(3, '0')}.jpg`
+            imagePath: `stimuli/faces/face_${String(i).padStart(3, '0')}_red.png`
         });
     }
 
@@ -24,7 +24,7 @@ export function generateFaces() {
         faces.push({
             id: CONFIG.RED_FACES + i,
             color: 'blue',
-            imagePath: `stimuli/blue_face_${String(i).padStart(3, '0')}.jpg`
+            imagePath: `stimuli/faces/face_${String(i).padStart(3, '0')}_blue.png`
         });
     }
 
