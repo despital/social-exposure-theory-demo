@@ -45,5 +45,15 @@ export const CONFIG = {
     },
 
     // Development mode - disable Firebase data saving
-    DISABLE_DATA_SAVING: true
+    DISABLE_DATA_SAVING: true,
+
+    // Phase 2 parameters
+    PHASE2_TRIALS_PER_COMPOSITION: 5,
+    PHASE2_COMPOSITIONS: [
+        { red: 4, blue: 0 },
+        { red: 3, blue: 1 },
+        { red: 2, blue: 2 },
+        { red: 1, blue: 3 },
+        { red: 0, blue: 4 }
+    ]
 };

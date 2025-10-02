@@ -142,3 +142,35 @@ export function getURLParams(jsPsych) {
         sessionId: sessionID
     };
 }
+
+/**
+ * Generate Phase 2 trials (partner choice task)
+ * Each trial shows 4 novel faces with varying red:blue ratios
+ */
+export function generatePhase2Trials(faces, jsPsych) {
+    const trials = [];
+
+    // For each composition (4:0, 3:1, 2:2, 1:3, 0:4)
+    CONFIG.PHASE2_COMPOSITIONS.forEach(composition => {
+        // Create PHASE2_TRIALS_PER_COMPOSITION trials for this composition
+        for (let i = 0; i < CONFIG.PHASE2_TRIALS_PER_COMPOSITION; i++) {
+            const redFaces = faces.filter(f => f.color === 'red');
+            const blueFaces = faces.filter(f => f.color === 'blue');
+
+            // Sample faces without replacement
+            const selectedRed = jsPsych.randomization.sampleWithoutReplacement(redFaces, composition.red);
+            const selectedBlue = jsPsych.randomization.sampleWithoutReplacement(blueFaces, composition.blue);
+
+            const trialFaces = jsPsych.randomization.shuffle([...selectedRed, ...selectedBlue]);
+
+            trials.push({
+                faces: trialFaces,
+                composition: composition,
+                phase: 2
+            });
+        }
+    });
+
+    // Shuffle all trials
+    return jsPsych.randomization.shuffle(trials);
+}
