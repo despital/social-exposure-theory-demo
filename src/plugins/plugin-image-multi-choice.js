@@ -71,7 +71,6 @@ class ImageMultiChoicePlugin {
 
         // Add each image
         trial.images.forEach((image, index) => {
-            const backgroundColor = image.color || 'transparent';
             html += `
                 <div class="image-multi-choice-option" data-choice="${index}" style="
                     border: 3px solid transparent;
@@ -79,7 +78,7 @@ class ImageMultiChoicePlugin {
                     padding: 20px;
                     cursor: pointer;
                     transition: all 0.3s ease;
-                    background-color: ${backgroundColor === 'red' ? 'rgba(255, 0, 0, 0.3)' : backgroundColor === 'blue' ? 'rgba(0, 0, 255, 0.3)' : 'transparent'};
+                    background-color: transparent;
                     text-align: center;
                 ">
                     <img src="${image.src}" alt="Choice ${index + 1}" style="
@@ -89,7 +88,6 @@ class ImageMultiChoicePlugin {
                         border-radius: 5px;
                         display: block;
                         margin: 0 auto;
-                        background-color: ${backgroundColor};
                     ">
                 </div>
             `;

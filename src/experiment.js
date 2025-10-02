@@ -328,7 +328,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         prompt: function() {
             return `
                 <div class="score-display">Score: ${totalScore}</div>
-                <h3>Trial ${trialCount + 1} of ${trials.length}</h3>
                 <p>Choose a person to interact with by clicking on a face:</p>
             `;
         },
