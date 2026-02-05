@@ -1,18 +1,10 @@
 # TODO - Social Exposure Theory Experiment
 
-## Priority 1: Essential Additions
-
 ### 1. Add Consent Form, Survey, and Debriefing
-**Status:** Not started
+**Status:** In progress
 **Reference:** `experiment_demo.js` (lines 96-130 for consent, 132-214 for demographics)
 
 **Tasks:**
-- [ ] Create `assets/informed_consent/` directory
-- [ ] Add consent form HTML file (retrieve PDF version from lab)
-- [ ] Implement consent screen with checkbox validation
-- [ ] Add demographics survey using `@jspsych/plugin-survey`
-  - Age, gender, handedness, vision
-  - Relevant background questions
 - [ ] Add post-experiment debriefing screen
 - [ ] Add post-questionnaire for feedback
   - Technical issues check
@@ -26,8 +18,6 @@
   - Reduce trials (e.g., 1 exposure per face instead of 3)
   - Skip post-questionnaire
 - [ ] Activate via URL parameter: `?debug=true`
-
-**Estimated time:** 3-4 hours
 
 ---
 
@@ -50,40 +40,14 @@
 - [ ] Ensure participants can only write to their own data
 - [ ] Restrict read access
 
-**Estimated time:** 2-3 hours
 
 ---
-
-## Priority 2: Phase 2 Planning
-
-### 3. Phase 2 Design Discussion
-**Status:** Pending requirements
-
-**Placeholder for future discussion:**
-- What is the task structure for Phase 2?
-- Does it build on Phase 1 data?
-- New stimuli needed?
-- Different trial types?
-
-**Document requirements here once discussed.**
-
----
-
-## Priority 3: Enhancements & Polish
-
 ### 4. Stimuli Integration
-**Status:** Awaiting GAN-generated faces
+**Status:** in-progess (2026-02-05)
 
 **Tasks:**
-- [ ] Acquire 100 GAN-generated face images
-- [ ] Process images (resize, format, add colored backgrounds)
-- [ ] Organize into `stimuli/` folder:
-  - `red_face_000.jpg` through `red_face_049.jpg`
-  - `blue_face_000.jpg` through `blue_face_049.jpg`
 - [ ] Test image loading times
 - [ ] Add preloading if needed for performance
-
-**Estimated time:** 2-3 hours (once images available)
 
 ---
 
@@ -99,14 +63,12 @@
 - [ ] Mobile device testing (if applicable)
 - [ ] Prolific integration test
 
-**Estimated time:** 4-5 hours
-
 ---
 
 ### 6. Additional Features
 
 **Nice-to-have improvements:**
-- [ ] Add fullscreen mode (like in demo)
+- [x] Add fullscreen mode (like in demo)
 - [ ] Add attention checks periodically
 - [ ] Add break screens every N trials
 - [ ] Add practice trials before main experiment
@@ -119,22 +81,16 @@
 **Estimated time:** Variable based on priorities
 
 ---
-
-## Priority 4: Deployment
-
 ### 7. Production Deployment
 
 **Tasks:**
-- [ ] Run production build: `npm run build`
-- [ ] Test production build locally
-- [ ] Upload `dist/` to GitHub Pages
-- [ ] Configure custom domain (if needed)
+- [x] Run production build: `npm run build`
+- [x] Test production build locally
+- [x] Upload `dist/` to GitHub Pages
 - [ ] Generate final condition URLs
 - [ ] Document URLs for research team
 - [ ] Set up Prolific study
 - [ ] Pilot test with 5-10 participants
-
-**Estimated time:** 2-3 hours
 
 ---
 
@@ -147,7 +103,6 @@
 - [ ] Create experimenter dashboard for monitoring
 - [ ] Add randomization check tools
 - [ ] Performance optimization for large datasets
-- [ ] Internationalization (if needed)
 
 ---
 
@@ -165,7 +120,9 @@
 - [x] Git repository setup
 - [x] Webpack build system
 - [x] Development documentation
+- [x] Added consent screen
+- [x] Obtained and modify FaceGen stimuli
 
 ---
 
-**Last Updated:** 2025-09-30
+**Last Updated:** 2026-02-05

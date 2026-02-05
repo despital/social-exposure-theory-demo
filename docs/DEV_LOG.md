@@ -249,26 +249,6 @@ Current experiment flow:
 
 ---
 
-## Known Issues & Limitations
-
-1. **No real face stimuli yet**: Using placeholder image paths
-   - Images expected in: `stimuli/red_face_XXX.jpg` and `stimuli/blue_face_XXX.jpg`
-
-2. **Firebase disabled**: Currently using demo credentials in read-only mode
-   - Need to set up new Firebase project
-   - Update credentials in `src/utils/config.js`
-
-3. **No consent/surveys**: Core experiment only, missing:
-   - Consent form
-   - Demographics survey
-   - Post-experiment debriefing
-   - Attention checks
-
-4. **No skip logic for development**: Developers must go through all trials
-   - Should add debug mode with reduced trials
-
----
-
 ## Development Commands
 
 ```bash
