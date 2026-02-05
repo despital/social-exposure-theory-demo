@@ -3,8 +3,107 @@
 ## Project Overview
 A jsPsych-based experiment investigating approach-avoidance behavior towards in-group vs. out-group members in a social exposure paradigm.
 
-**Current Status:** Phase 1 core functionality complete ✅
-**Last Updated:** 2025-09-30
+**Current Status:** Phase 1 with actual FaceGen stimuli ✅
+**Last Updated:** 2026-02-05
+
+---
+
+## Git Repository Structure
+
+### Branch Structure
+This project uses two main branches:
+
+1. **`master`** - Development branch
+   - Contains source code and all assets
+   - All development work happens here
+   - Build artifacts (`dist/`) are generated from this branch
+
+2. **`gh-pages`** - Deployment branch
+   - Contains built/compiled files for GitHub Pages hosting
+   - Only receives updates from `dist/` after building
+   - Never modify source files directly on this branch
+
+### Remote Structure
+The project maintains two remote repositories:
+
+1. **`demo`** (Primary) - **Personal Repository**
+   - URL: `https://github.com/despital/social-exposure-theory-demo.git`
+   - **This is the primary repository used for the actual experiment**
+   - Deployed at: https://despital.github.io/social-exposure-theory-demo/
+   - Participants will access the experiment from this URL
+
+2. **`origin`** (Backup) - **Organization Repository**
+   - URL: `https://github.com/social-ai-uoft/social-exposure-theory`
+   - Serves as backup/archive
+   - Deployed at: https://social-ai-uoft.github.io/social-exposure-theory/
+
+**Important:** Both remotes are kept in sync, but the personal repo (`demo`) is what participants will use.
+
+### Standard Deployment Workflow
+
+When you need to deploy updates to GitHub Pages:
+
+```bash
+# 1. Ensure you're on master and changes are committed
+git add .
+git commit -m "Your changes description"
+git push origin master
+git push demo master
+
+# 2. Build the project
+npm run build
+
+# 3. Switch to gh-pages branch
+git checkout gh-pages
+
+# 4. Copy built files to gh-pages root
+cp -r dist/* .
+
+# 5. Stage and commit all changes
+git add -A
+git commit -m "Deploy: brief description of what changed"
+
+# 6. Push to both remotes
+git push origin gh-pages
+git push demo gh-pages
+
+# 7. Switch back to master
+git checkout master
+```
+
+**Key Points:**
+- Always build from `master` branch with latest changes
+- The `dist/` folder contains the production build
+- Copy ALL files from `dist/` to gh-pages root to ensure everything is updated
+- Push to both remotes to keep them synchronized
+- Changes take a few minutes to appear on GitHub Pages after pushing
+
+---
+
+## Session 2: FaceGen Stimuli Integration (2026-02-05)
+
+### What We Did
+
+#### Generated Actual Face Stimuli
+- Created 100 FaceGen face images with transparent backgrounds (PNG format)
+- Developed Python script (`generate_colored_faces.py`) to generate colored versions:
+  - Reads transparent PNG images from `stimuli/fg_faces/`
+  - Creates 200 output images: both red and blue versions of all 100 faces
+  - Applies solid red (255,0,0) and blue (0,0,255) backgrounds
+  - Outputs to `stimuli/faces/` as PNG files
+
+#### Deployment
+- Built production version with new stimuli
+- Deployed to GitHub Pages on both repositories:
+  - Organization: https://social-ai-uoft.github.io/social-exposure-theory/
+  - Personal: https://despital.github.io/social-exposure-theory-demo/
+- Successfully replaced demo images with actual FaceGen stimuli
+
+**Files Added:**
+- `stimuli/fg_faces/face_001.png` to `face_100.png` (source images)
+- `stimuli/faces/face_000_red.png` to `face_099_red.png` (red backgrounds)
+- `stimuli/faces/face_000_blue.png` to `face_099_blue.png` (blue backgrounds)
+- `generate_colored_faces.py` (image processing script)
 
 ---
 
