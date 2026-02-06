@@ -123,7 +123,11 @@ Once deployed, users can access:
 The experiment consists of:
 
 1. **Consent Form** - Informed consent with checkbox validation
-2. **Demographics Survey** - 3-page survey collecting participant information
+2. **Demographics Survey** - 4-page survey collecting participant information:
+   - Page 1: Age, gender, race/ethnicity
+   - Page 2: Education, socioeconomic status, political orientation
+   - Page 3: Employment status, primary language, English proficiency, geographic location
+   - Page 4: Vision correction, color blindness, device type
 3. **Phase 1: Social Learning** (300 trials)
    - Participants choose 1 face from 4 options
    - Receive immediate feedback (+1 or -5 points)

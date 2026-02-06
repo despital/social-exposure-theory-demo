@@ -221,7 +221,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                         elements: [
                             {
                                 type: 'text',
-                                title: 'What is your age?',
+                                title: 'How old are you?',
                                 name: 'age',
                                 isRequired: true,
                                 inputType: 'number',
@@ -230,10 +230,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                             },
                             {
                                 type: 'radiogroup',
-                                title: 'What is your gender?',
+                                title: 'How would you describe your gender identity?',
                                 name: 'gender',
                                 isRequired: true,
-                                choices: ['Female', 'Male', 'Non-binary', 'Prefer not to disclose']
+                                choices: ['Woman', 'Man', 'Non-binary', 'Prefer not to disclose']
                             },
                             {
                                 type: 'checkbox',
@@ -269,29 +269,31 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                     "Bachelor's degree",
                                     "Master's degree",
                                     'Doctoral degree',
-                                    'Professional degree (JD, MD, etc.)'
+                                    'Professional degree (JD, MD, etc.)',
+                                    'Prefer not to disclose'
                                 ]
                             },
                             {
                                 type: 'rating',
-                                title: 'Please rate your socioeconomic status on the scale below:',
+                                title: 'Where would you place yourself on this scale, relative to other people in society?',
+                                description: 'Please think of the following scale as representing where people stand in society. At the top are people who are best off — those who have the most money, education, and most respected jobs. At the bottom are people who are worst off — those who have the least money, education, and least respected jobs or no job.',
                                 name: 'ses_ladder',
                                 isRequired: true,
                                 rateMin: 1,
                                 rateMax: 10,
-                                minRateDescription: '1 (Lowest)',
-                                maxRateDescription: '10 (Highest)'
+                                minRateDescription: '1 (Bottom)',
+                                maxRateDescription: '10 (Top)'
                             },
 
                             {
                                 type: 'rating',
-                                title: 'Political orientation:',
+                                title: 'How would you describe your political orientation?',
                                 name: 'political_orientation',
                                 isRequired: true,
                                 rateMin: 1,
                                 rateMax: 7,
-                                minRateDescription: '1 (Very Liberal)',
-                                maxRateDescription: '7 (Very Conservative)'
+                                minRateDescription: '1 (Very Conservative)',
+                                maxRateDescription: '7 (Very Liberal)'
                             }
                         ]
                     },
@@ -300,10 +302,74 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                         elements: [
                             {
                                 type: 'radiogroup',
+                                title: 'What is your current employment status?',
+                                name: 'occupation',
+                                isRequired: true,
+                                choices: [
+                                    'Student',
+                                    'Employed',
+                                    'Self-employed',
+                                    'Unemployed',
+                                    'Retired',
+                                    'Other / prefer not to say'
+                                ]
+                            },
+                            {
+                                type: 'text',
+                                title: 'What is your primary language?',
+                                name: 'primary_language',
+                                isRequired: true,
+                                placeholder: 'e.g., English, Spanish, Mandarin, etc.'
+                            },
+                            {
+                                type: 'radiogroup',
+                                title: 'How would you rate your English proficiency?',
+                                name: 'english_proficiency',
+                                isRequired: true,
+                                choices: [
+                                    'Native speaker',
+                                    'Fluent',
+                                    'Proficient',
+                                    'Intermediate',
+                                    'Basic',
+                                    'Prefer not to say'
+                                ]
+                            },
+                            {
+                                type: 'dropdown',
+                                title: 'Where are you currently located?',
+                                name: 'geographic_location',
+                                isRequired: true,
+                                choices: [
+                                    'United States',
+                                    'Canada',
+                                    'United Kingdom',
+                                    'Australia',
+                                    'India',
+                                    'Germany',
+                                    'France',
+                                    'Spain',
+                                    'Italy',
+                                    'Netherlands',
+                                    'Brazil',
+                                    'Mexico',
+                                    'China',
+                                    'Japan',
+                                    'South Korea',
+                                    'Other'
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: 'page4',
+                        elements: [
+                            {
+                                type: 'radiogroup',
                                 title: 'Do you wear glasses or contact lenses?',
                                 name: 'vision_correction',
                                 isRequired: true,
-                                choices: ['Glasses', 'Contact lenses', 'Both', 'None']
+                                choices: ['Glasses', 'Contact lenses', 'None']
                             },
                             {
                                 type: 'radiogroup',
@@ -311,6 +377,18 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 name: 'color_blind',
                                 isRequired: true,
                                 choices: ['Yes', 'No', 'Not sure']
+                            },
+                            {
+                                type: 'radiogroup',
+                                title: 'What type of device are you using to complete this experiment?',
+                                name: 'device_type',
+                                isRequired: true,
+                                choices: [
+                                    'Desktop computer / Laptop',
+                                    'Tablet',
+                                    'Smartphone',
+                                    'Other'
+                                ]
                             }
                         ]
                     }

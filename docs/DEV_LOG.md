@@ -8,6 +8,80 @@ A jsPsych-based experiment investigating approach-avoidance behavior towards in-
 
 ---
 
+## Session 5: Enhanced Demographics Survey (2026-02-06)
+
+### What We Did
+
+#### Expanded Demographics Collection
+Added additional demographic questions to better characterize the participant sample.
+
+**New Questions Added:**
+
+**Page 3 (New)** - Employment, Language, and Location:
+1. **Employment Status** (radiogroup)
+   - Student
+   - Employed
+   - Self-employed
+   - Unemployed
+   - Retired
+   - Other / prefer not to say
+
+2. **Primary Language** (text input)
+   - Free-text field with placeholder example
+   - Helps understand language background of participants
+
+3. **English Proficiency** (radiogroup)
+   - Native speaker
+   - Fluent
+   - Proficient
+   - Intermediate
+   - Basic
+   - Prefer not to say
+
+4. **Geographic Location** (dropdown)
+   - 15+ country options including:
+     - United States, Canada, United Kingdom
+     - Australia, India, Germany, France, Spain, Italy
+     - Netherlands, Brazil, Mexico, China, Japan, South Korea
+     - Other (for countries not listed)
+
+**Page 4 (formerly Page 3)** - Technical Setup:
+5. **Device Type** (radiogroup) - Added to existing vision/color questions
+   - Desktop computer
+   - Laptop
+   - Tablet
+   - Smartphone
+   - Other
+
+**Survey Structure:**
+- Demographics survey now has **4 pages** (was 3 pages)
+- Page 1: Personal demographics (age, gender, ethnicity)
+- Page 2: Socioeconomic factors (education, SES, political orientation)
+- Page 3: Employment, language, and location (NEW)
+- Page 4: Technical factors (vision, color blindness, device type)
+
+**Files Modified:**
+- `src/experiment.js`: Added new page 3 and updated page 4 (lines 298-368)
+- `README.md`: Updated Experiment Structure to reflect 4-page survey with breakdown
+- `docs/DEV_LOG.md`: Added Session 5 entry (this section)
+
+**Data Collected:**
+New demographic variables now captured:
+- `occupation`: Employment status category
+- `primary_language`: Participant's primary language
+- `english_proficiency`: Self-rated English proficiency level
+- `geographic_location`: Current country of residence
+- `device_type`: Device used for experiment
+
+**Rationale:**
+These additional demographics enable:
+- Analysis of language/cultural factors in social learning
+- Control for device-related differences in task performance
+- Better characterization of the participant sample
+- Potential moderator analysis by employment status and location
+
+---
+
 ## Session 4: End-of-Experiment Section (2026-02-06)
 
 ### What We Did
