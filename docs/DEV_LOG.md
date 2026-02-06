@@ -3,8 +3,141 @@
 ## Project Overview
 A jsPsych-based experiment investigating approach-avoidance behavior towards in-group vs. out-group members in a social exposure paradigm.
 
-**Current Status:** Phase 1 with actual FaceGen stimuli ✅
-**Last Updated:** 2026-02-05
+**Current Status:** Phase 1-3 Complete + Debug Mode ✅
+**Last Updated:** 2026-02-06
+
+---
+
+## Session 3: Phase 3 Implementation & Debug Mode (2026-02-06)
+
+### What We Did
+
+#### Added Phase 3: Post-Task Rating
+- Created new phase after Phase 2 where participants rate all faces they encountered
+- Two-question format per face:
+  1. **Good/Bad Rating**: Binary button choice ("Bad" vs "Good")
+  2. **Confidence Rating**: 6-level Likert scale with word labels only
+     - Very unconfident, Unconfident, Slightly unconfident, Slightly confident, Confident, Very confident
+- Face order randomized to prevent order effects
+- Progress bar updated to show Phase 3 progress (final 25% of bar)
+
+**Helper Function Added:**
+- `generatePhase3Trials()` in `helpers.js` (lines 178-226)
+  - Collects all unique faces shown in Phase 1 and Phase 2
+  - Creates two trials per face (good/bad + confidence)
+  - Shuffles face order for randomization
+
+**Data Collected:**
+- `task`: 'phase3_goodbad' or 'phase3_confidence'
+- `face_id`, `face_color`, `face_is_good`: Face information
+- `rating`: 'bad' or 'good' (for good/bad trials)
+- `confidence_level`: 1-6 (for confidence trials)
+- `confidence_label`: Text label of confidence level
+- `previous_goodbad_rating`: Links confidence to prior rating
+- `rt`: Response time (automatic)
+
+#### Implemented Comprehensive Debug Mode System
+
+**1. Basic Debug Mode** (`?debug=true`):
+- Skips consent form and demographics survey (configurable)
+- Reduces Phase 1: 100 trials (1 exposure) instead of 300 (3 exposures)
+- Reduces Phase 2: 5 trials (1 per composition) instead of 25 (5 per composition)
+- Can skip Phase 3 (configurable in config.js)
+- Records debug status in data for analysis filtering
+
+**2. Section-Jumping System** (`?debug=true&section=X`):
+Allows jumping directly to specific sections for rapid testing:
+- `section=consent`: Only consent form
+- `section=demographics`: Only demographics survey
+- `section=phase1`: Only Phase 1 (skips consent, demographics)
+- `section=phase2`: Only Phase 2
+- `section=phase3`: Only Phase 3 post-task rating
+- `section=end`: Skip directly to end screen
+- `section=all`: All sections with reduced trials (default)
+
+**3. Simulation Mode Integration** (`?simulate=visual` or `?simulate=data`):
+Leverages jsPsych's built-in simulation for automated testing:
+- `simulate=visual`: Watch experiment run automatically with UI
+- `simulate=data`: Generate data without rendering visuals
+- Combinable with debug mode for fastest testing: `?debug=true&section=phase3&simulate=visual`
+
+**Configuration Added:**
+```javascript
+// config.js
+DEBUG_MODE: {
+    SKIP_CONSENT: true,
+    SKIP_DEMOGRAPHICS: true,
+    SKIP_PHASE3: false,
+    REDUCE_PHASE1_TRIALS: true,
+    REDUCE_PHASE2_TRIALS: true,
+    ENABLE_SIMULATION: false
+},
+DEBUG_SECTIONS: {
+    all: ['consent', 'demographics', 'phase1', 'phase2', 'phase3'],
+    consent: ['consent'],
+    demographics: ['demographics'],
+    phase1: ['phase1'],
+    phase2: ['phase2'],
+    phase3: ['phase3'],
+    end: []
+}
+```
+
+**Console Logging:**
+All debug actions are logged for transparency:
+```
+Debug mode: ENABLED
+Section: phase3 -> Showing: ['phase3']
+Debug mode: Reduced Phase 1 to 1 exposure per face
+Debug mode: Reduced Phase 2 to 1 trial per composition
+Debug mode: Skipped consent form
+Debug mode: Skipped demographics survey
+Phase 3 initialized: { totalTrials: 200, uniqueFaces: 100 }
+```
+
+### Technical Implementation Details
+
+**Scope Management:**
+- Phase 2 trials generated upfront (even if Phase 2 skipped) so Phase 3 can access face data
+- `shouldShowSection()` helper function determines which sections to include
+- Whitelist approach: only sections in `sectionsToShow` array are added to timeline
+
+**jsPsych v8 Compatibility:**
+- Fixed `button_html` parameter in Phase 3 trials to use function syntax:
+  - Before: `button_html: '<button>%choice%</button>'`
+  - After: `button_html: (choice) => \`<button>${choice}</button>\``
+- Required for jsPsych v8 compatibility
+
+**Files Modified:**
+- `src/utils/config.js`: Added DEBUG_MODE and DEBUG_SECTIONS
+- `src/utils/helpers.js`: Added `generatePhase3Trials()` function
+- `src/experiment.js`:
+  - Added Phase 3 timeline and trials
+  - Implemented debug mode and section-jumping logic
+  - Added simulation mode support at experiment run
+
+### Development Workflow Benefits
+
+**Fast Iteration Examples:**
+```bash
+# Test only Phase 3 with visual simulation
+http://localhost:8080/?debug=true&section=phase3&simulate=visual
+
+# Test Phase 2 with reduced trials
+http://localhost:8080/?debug=true&section=phase2
+
+# Quick run-through of entire experiment
+http://localhost:8080/?debug=true&simulate=visual
+
+# Test consent form changes
+http://localhost:8080/?debug=true&section=consent
+```
+
+**Time Savings:**
+- Full experiment: ~20-25 minutes
+- Debug mode (all phases): ~3-5 minutes
+- Section jumping (single phase): ~30 seconds - 2 minutes
+- Simulation mode: ~10-30 seconds
 
 ---
 

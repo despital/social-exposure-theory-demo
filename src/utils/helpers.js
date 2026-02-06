@@ -174,3 +174,53 @@ export function generatePhase2Trials(faces, jsPsych) {
     // Shuffle all trials
     return jsPsych.randomization.shuffle(trials);
 }
+
+/**
+ * Generate Phase 3 trials (post-task rating)
+ * Collects all unique faces shown in Phase 1 and Phase 2
+ * Creates two trials per face: good/bad rating and confidence rating
+ */
+export function generatePhase3Trials(phase1Trials, phase2Trials, faces, jsPsych) {
+    // Collect all unique face IDs from Phase 1 and Phase 2
+    const shownFaceIds = new Set();
+
+    // Add faces from Phase 1
+    phase1Trials.forEach(trial => {
+        trial.faces.forEach(face => {
+            shownFaceIds.add(face.id);
+        });
+    });
+
+    // Add faces from Phase 2
+    phase2Trials.forEach(trial => {
+        trial.faces.forEach(face => {
+            shownFaceIds.add(face.id);
+        });
+    });
+
+    // Get face objects for all shown faces
+    const shownFaces = faces.filter(face => shownFaceIds.has(face.id));
+
+    // Shuffle the order of faces
+    const shuffledFaces = jsPsych.randomization.shuffle(shownFaces);
+
+    // Create trials: for each face, create good/bad trial and confidence trial
+    const trials = [];
+    shuffledFaces.forEach(face => {
+        // Trial 1: Good/Bad rating
+        trials.push({
+            face: face,
+            trialType: 'goodbad',
+            phase: 3
+        });
+
+        // Trial 2: Confidence rating
+        trials.push({
+            face: face,
+            trialType: 'confidence',
+            phase: 3
+        });
+    });
+
+    return trials;
+}

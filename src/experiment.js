@@ -24,7 +24,7 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 
 // Import utilities
 import { CONFIG } from "./utils/config.js";
-import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generatePhase2Trials } from "./utils/helpers.js";
+import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generatePhase2Trials, generatePhase3Trials } from "./utils/helpers.js";
 
 /**
  * This function will be executed by jsPsych Builder and is expected to run the jsPsych experiment
@@ -42,6 +42,27 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // Get URL parameters for condition assignment
     const urlParams = getURLParams(jsPsych);
 
+    // Check for debug mode
+    const debugMode = jsPsych.data.getURLVariable('debug') === 'true';
+    const simulateMode = jsPsych.data.getURLVariable('simulate'); // 'data', 'visual', or null
+    const sectionParam = jsPsych.data.getURLVariable('section') || 'all'; // Which section(s) to show
+
+    // Determine which sections to include
+    const sectionsToShow = debugMode && CONFIG.DEBUG_SECTIONS[sectionParam]
+        ? CONFIG.DEBUG_SECTIONS[sectionParam]
+        : ['consent', 'demographics', 'phase1', 'phase2', 'phase3']; // Default: show all
+
+    // Helper function to check if a section should be shown
+    const shouldShowSection = (section) => sectionsToShow.includes(section);
+
+    console.log('Debug mode:', debugMode ? 'ENABLED' : 'disabled');
+    if (debugMode) {
+        console.log('Section:', sectionParam, '-> Showing:', sectionsToShow);
+    }
+    if (simulateMode) {
+        console.log('Simulation mode:', simulateMode);
+    }
+
     // Add experiment properties to all data
     jsPsych.data.addProperties({
         participant_id: urlParams.participantId,
@@ -49,7 +70,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         session_id: urlParams.sessionId,
         condition: urlParams.condition,
         majority_group: urlParams.majorityGroup,
-        informed: urlParams.informed
+        informed: urlParams.informed,
+        debug_mode: debugMode
     });
 
     // Initialize Firebase (optional - disabled in development)
@@ -71,18 +93,38 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     faces = assignGoodBad(faces, jsPsych);
 
     // Generate trials using block design
+    // If debug mode, override exposures to 1 instead of 3
+    const originalExposures = CONFIG.EXPOSURES_PER_FACE;
+    if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE1_TRIALS) {
+        CONFIG.EXPOSURES_PER_FACE = 1;
+        console.log('Debug mode: Reduced Phase 1 to 1 exposure per face');
+    }
     const trials = generateTrials(faces, urlParams, jsPsych);
+    CONFIG.EXPOSURES_PER_FACE = originalExposures; // Restore original value
 
     // Track score
     let totalScore = 0;
     let trialCount = 0;
+
+    // Generate Phase 2 trials (needed even if Phase 2 is skipped, for Phase 3)
+    const originalPhase2Trials = CONFIG.PHASE2_TRIALS_PER_COMPOSITION;
+    if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE2_TRIALS) {
+        CONFIG.PHASE2_TRIALS_PER_COMPOSITION = 1;
+        console.log('Debug mode: Reduced Phase 2 to 1 trial per composition');
+    }
+    const phase2Trials = generatePhase2Trials(faces, jsPsych);
+    CONFIG.PHASE2_TRIALS_PER_COMPOSITION = originalPhase2Trials; // Restore original value
+
+    let phase2Score = 0;
+    let phase2TrialCount = 0;
 
     console.log('Experiment initialized:', {
         condition: urlParams.condition,
         majorityGroup: urlParams.majorityGroup,
         informed: urlParams.informed,
         participantId: urlParams.participantId,
-        totalTrials: trials.length
+        phase1Trials: trials.length,
+        phase2Trials: phase2Trials.length
     });
 
     // ========================================================================
@@ -105,182 +147,191 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // CONSENT FORM
     // ========================================================================
 
-    // Consent intro
-    const consentIntro = {
-        type: HtmlButtonResponsePlugin,
-        stimulus: `
-            <h2>Informed Consent</h2>
-            <p>Before we begin, please read and agree to the informed consent form.</p>
-            <p>This study involves viewing faces and making decisions about who to interact with.</p>
-            <p>The experiment will take approximately 20-25 minutes.</p>
-        `,
-        choices: ['View Consent Form'],
-        data: {
-            task: 'consent_intro'
-        }
-    };
-    timeline.push(consentIntro);
+    if (shouldShowSection('consent')) {
+        // Consent intro
+        const consentIntro = {
+            type: HtmlButtonResponsePlugin,
+            stimulus: `
+                <h2>Informed Consent</h2>
+                <p>Before we begin, please read and agree to the informed consent form.</p>
+                <p>This study involves viewing faces and making decisions about who to interact with.</p>
+                <p>The experiment will take approximately 20-25 minutes.</p>
+            `,
+            choices: ['View Consent Form'],
+            data: {
+                task: 'consent_intro'
+            }
+        };
+        timeline.push(consentIntro);
 
-    // Consent form with validation
-    function checkConsent() {
-        if (document.getElementById('consent_checkbox').checked) {
-            return true;
-        } else {
-            alert("Please check the box to indicate that you consent to participate.");
-            return false;
+        // Consent form with validation
+        function checkConsent() {
+            if (document.getElementById('consent_checkbox').checked) {
+                return true;
+            } else {
+                alert("Please check the box to indicate that you consent to participate.");
+                return false;
+            }
         }
+
+        const consentForm = {
+            type: ExternalHtmlPlugin,
+            url: 'assets/informed_consent/consent_form.html',
+            cont_btn: 'start',
+            check_fn: checkConsent,
+            data: {
+                task: 'consent_form'
+            }
+        };
+        timeline.push(consentForm);
+    } else {
+        console.log('Debug mode: Skipped consent form');
     }
-
-    const consentForm = {
-        type: ExternalHtmlPlugin,
-        url: 'assets/informed_consent/consent_form.html',
-        cont_btn: 'start',
-        check_fn: checkConsent,
-        data: {
-            task: 'consent_form'
-        }
-    };
-    timeline.push(consentForm);
 
     // ========================================================================
     // DEMOGRAPHICS SURVEY
     // ========================================================================
 
-    const demographicsIntro = {
-        type: HtmlButtonResponsePlugin,
-        stimulus: `
-            <h2>Background Information</h2>
-            <p>Before starting the main experiment, we'd like to collect some background information.</p>
-            <p>This will take about 2-3 minutes.</p>
-        `,
-        choices: ['Continue'],
-        data: {
-            task: 'demographics_intro'
-        }
-    };
-    timeline.push(demographicsIntro);
+    if (shouldShowSection('demographics')) {
+        const demographicsIntro = {
+            type: HtmlButtonResponsePlugin,
+            stimulus: `
+                <h2>Background Information</h2>
+                <p>Before starting the main experiment, we'd like to collect some background information.</p>
+                <p>This will take about 2-3 minutes.</p>
+            `,
+            choices: ['Continue'],
+            data: {
+                task: 'demographics_intro'
+            }
+        };
+        timeline.push(demographicsIntro);
 
-    // Demographics survey - Single multi-page survey
-    const demographicsSurvey = {
-        type: survey,
-        survey_json: {
-            showQuestionNumbers: true,
-            completeText: 'Continue to Experiment',
-            pageNextText: 'Next',
-            pagePrevText: 'Back',
-            pages: [
-                {
-                    name: 'page1',
-                    elements: [
-                        {
-                            type: 'text',
-                            title: 'What is your age?',
-                            name: 'age',
-                            isRequired: true,
-                            inputType: 'number',
-                            min: 18,
-                            max: 100
-                        },
-                        {
-                            type: 'radiogroup',
-                            title: 'What is your gender?',
-                            name: 'gender',
-                            isRequired: true,
-                            choices: ['Female', 'Male', 'Non-binary', 'Prefer not to disclose']
-                        },
-                        {
-                            type: 'checkbox',
-                            title: 'What is your race/ethnicity? (Select all that apply)',
-                            name: 'ethnicity',
-                            isRequired: true,
-                            choices: [
-                                'American Indian or Alaska Native',
-                                'Asian',
-                                'Black or African American',
-                                'Hispanic or Latino',
-                                'Native Hawaiian or Pacific Islander',
-                                'White',
-                                'Other',
-                                'Prefer not to disclose'
-                            ]
-                        }
-                    ]
-                },
-                {
-                    name: 'page2',
-                    elements: [
-                        {
-                            type: 'radiogroup',
-                            title: 'What is your highest level of education?',
-                            name: 'education',
-                            isRequired: true,
-                            choices: [
-                                'Less than high school',
-                                'High school graduate',
-                                'Some college',
-                                'Associate degree',
-                                "Bachelor's degree",
-                                "Master's degree",
-                                'Doctoral degree',
-                                'Professional degree (JD, MD, etc.)'
-                            ]
-                        },
-                        {
-                            type: 'rating',
-                            title: 'Please rate your socioeconomic status on the scale below:',
-                            name: 'ses_ladder',
-                            isRequired: true,
-                            rateMin: 1,
-                            rateMax: 10,
-                            minRateDescription: '1 (Lowest)',
-                            maxRateDescription: '10 (Highest)'
-                        },
+        // Demographics survey - Single multi-page survey
+        const demographicsSurvey = {
+            type: survey,
+            survey_json: {
+                showQuestionNumbers: true,
+                completeText: 'Continue to Experiment',
+                pageNextText: 'Next',
+                pagePrevText: 'Back',
+                pages: [
+                    {
+                        name: 'page1',
+                        elements: [
+                            {
+                                type: 'text',
+                                title: 'What is your age?',
+                                name: 'age',
+                                isRequired: true,
+                                inputType: 'number',
+                                min: 18,
+                                max: 100
+                            },
+                            {
+                                type: 'radiogroup',
+                                title: 'What is your gender?',
+                                name: 'gender',
+                                isRequired: true,
+                                choices: ['Female', 'Male', 'Non-binary', 'Prefer not to disclose']
+                            },
+                            {
+                                type: 'checkbox',
+                                title: 'What is your race/ethnicity? (Select all that apply)',
+                                name: 'ethnicity',
+                                isRequired: true,
+                                choices: [
+                                    'American Indian or Alaska Native',
+                                    'Asian',
+                                    'Black or African American',
+                                    'Hispanic or Latino',
+                                    'Native Hawaiian or Pacific Islander',
+                                    'White',
+                                    'Other',
+                                    'Prefer not to disclose'
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        name: 'page2',
+                        elements: [
+                            {
+                                type: 'radiogroup',
+                                title: 'What is your highest level of education?',
+                                name: 'education',
+                                isRequired: true,
+                                choices: [
+                                    'Less than high school',
+                                    'High school graduate',
+                                    'Some college',
+                                    'Associate degree',
+                                    "Bachelor's degree",
+                                    "Master's degree",
+                                    'Doctoral degree',
+                                    'Professional degree (JD, MD, etc.)'
+                                ]
+                            },
+                            {
+                                type: 'rating',
+                                title: 'Please rate your socioeconomic status on the scale below:',
+                                name: 'ses_ladder',
+                                isRequired: true,
+                                rateMin: 1,
+                                rateMax: 10,
+                                minRateDescription: '1 (Lowest)',
+                                maxRateDescription: '10 (Highest)'
+                            },
 
-                        {
-                            type: 'rating',
-                            title: 'Political orientation:',
-                            name: 'political_orientation',
-                            isRequired: true,
-                            rateMin: 1,
-                            rateMax: 7,
-                            minRateDescription: '1 (Very Liberal)',
-                            maxRateDescription: '7 (Very Conservative)'
-                        }
-                    ]
-                },
-                {
-                    name: 'page3',
-                    elements: [
-                        {
-                            type: 'radiogroup',
-                            title: 'Do you wear glasses or contact lenses?',
-                            name: 'vision_correction',
-                            isRequired: true,
-                            choices: ['Glasses', 'Contact lenses', 'Both', 'None']
-                        },
-                        {
-                            type: 'radiogroup',
-                            title: 'Are you color blind or have difficulty distinguishing between red and blue?',
-                            name: 'color_blind',
-                            isRequired: true,
-                            choices: ['Yes', 'No', 'Not sure']
-                        }
-                    ]
-                }
-            ]
-        },
-        data: {
-            task: 'demographics'
-        }
-    };
-    timeline.push(demographicsSurvey);
+                            {
+                                type: 'rating',
+                                title: 'Political orientation:',
+                                name: 'political_orientation',
+                                isRequired: true,
+                                rateMin: 1,
+                                rateMax: 7,
+                                minRateDescription: '1 (Very Liberal)',
+                                maxRateDescription: '7 (Very Conservative)'
+                            }
+                        ]
+                    },
+                    {
+                        name: 'page3',
+                        elements: [
+                            {
+                                type: 'radiogroup',
+                                title: 'Do you wear glasses or contact lenses?',
+                                name: 'vision_correction',
+                                isRequired: true,
+                                choices: ['Glasses', 'Contact lenses', 'Both', 'None']
+                            },
+                            {
+                                type: 'radiogroup',
+                                title: 'Are you color blind or have difficulty distinguishing between red and blue?',
+                                name: 'color_blind',
+                                isRequired: true,
+                                choices: ['Yes', 'No', 'Not sure']
+                            }
+                        ]
+                    }
+                ]
+            },
+            data: {
+                task: 'demographics'
+            }
+        };
+        timeline.push(demographicsSurvey);
+    } else {
+        console.log('Debug mode: Skipped demographics survey');
+    }
 
     // ========================================================================
     // PHASE 1: MAIN EXPERIMENT INSTRUCTIONS
     // ========================================================================
 
-    // Instructions
-    const instructions = {
+    if (shouldShowSection('phase1')) {
+        // Instructions
+        const instructions = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: function() {
             let text = `
@@ -381,7 +432,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             task: 'feedback'
         },
         on_finish: function() {
-            const progress = trialCount / trials.length;
+            // Phase 1 takes up 60% of the progress bar (0.0 to 0.6)
+            const progress = (trialCount / trials.length) * 0.6;
             jsPsych.progressBar.progress = progress;
         }
     };
@@ -393,30 +445,34 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     };
     timeline.push(trialProcedure);
 
-    // ========================================================================
-    // PHASE 1 COMPLETE - TRANSITION TO PHASE 2
-    // ========================================================================
+        // ========================================================================
+        // PHASE 1 COMPLETE - TRANSITION TO PHASE 2
+        // ========================================================================
 
-    const phase1Complete = {
-        type: HtmlKeyboardResponsePlugin,
-        stimulus: function() {
-            return `
-                <h2>Phase 1 Complete!</h2>
-                <p>Your Phase 1 score: <strong>${totalScore}</strong></p>
-                <p>Great job! You've finished the first part of the experiment.</p>
-                <p>Press any key to continue.</p>
-            `;
-        },
-        post_trial_gap: 500,
-        data: {
-            task: 'phase1_complete',
-            phase1_score: totalScore
-        }
-    };
-    timeline.push(phase1Complete);
+        const phase1Complete = {
+            type: HtmlKeyboardResponsePlugin,
+            stimulus: function() {
+                return `
+                    <h2>Phase 1 Complete!</h2>
+                    <p>Your Phase 1 score: <strong>${totalScore}</strong></p>
+                    <p>Great job! You've finished the first part of the experiment.</p>
+                    <p>Press any key to continue.</p>
+                `;
+            },
+            post_trial_gap: 500,
+            data: {
+                task: 'phase1_complete',
+                phase1_score: totalScore
+            }
+        };
+        timeline.push(phase1Complete);
+    } else {
+        console.log('Debug mode: Skipped Phase 1');
+    }
 
     // Big break before Phase 2
-    const phase2BreakScreen = {
+    if (shouldShowSection('phase2')) {
+        const phase2BreakScreen = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: function() {
             return `
@@ -482,16 +538,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // PHASE 2: PARTNER CHOICE TASK
     // ========================================================================
 
-    // Generate Phase 2 trials
-    const phase2Trials = generatePhase2Trials(faces, jsPsych);
-    let phase2Score = 0;
-    let phase2TrialCount = 0;
-
-    console.log('Phase 2 initialized:', {
-        totalTrials: phase2Trials.length
-    });
-
-    // Phase 2 Choice trial (no feedback)
+        // Phase 2 Choice trial (no feedback)
     const phase2ChoiceTrial = {
         type: ImageMultiChoicePlugin,
         images: function() {
@@ -534,10 +581,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.outcome = outcome;
             data.phase2_score = phase2Score;
 
-            // Update progress bar to continue from Phase 1
-            const phase1Progress = 1.0; // Phase 1 ended at 100%
+            // Update progress bar
+            // Phase 1 ends at 0.6, Phase 2 occupies 0.6 to 0.7 (10% of total bar)
             const phase2Progress = phase2TrialCount / phase2Trials.length;
-            jsPsych.progressBar.progress = phase1Progress + (phase2Progress * 0.5); // Phase 2 takes additional 50% of progress bar
+            jsPsych.progressBar.progress = 0.6 + (phase2Progress * 0.1);
         }
     };
 
@@ -548,26 +595,198 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     };
     timeline.push(phase2Timeline);
 
-    // Phase 2 Summary
-    const phase2Summary = {
+        // Phase 2 Summary
+        const phase2Summary = {
+            type: HtmlKeyboardResponsePlugin,
+            stimulus: function() {
+                return `
+                    <h2>Phase 2 Complete!</h2>
+                    <p>Your Phase 2 score: <strong>${phase2Score}</strong></p>
+                    <p>Your total combined score: <strong>${totalScore + phase2Score}</strong></p>
+                    <p>Thank you for completing both phases!</p>
+                    <p>Press any key to continue.</p>
+                `;
+            },
+            post_trial_gap: 500,
+            data: {
+                task: 'phase2_summary',
+                phase2_score: phase2Score,
+                total_combined_score: totalScore + phase2Score
+            }
+        };
+        timeline.push(phase2Summary);
+    } else {
+        console.log('Debug mode: Skipped Phase 2');
+    }
+
+    // ========================================================================
+    // PHASE 3: POST-TASK RATING
+    // ========================================================================
+
+    if (shouldShowSection('phase3')) {
+        // Phase 3 Instructions
+        const phase3Instructions = {
         type: HtmlKeyboardResponsePlugin,
-        stimulus: function() {
-            return `
-                <h2>Phase 2 Complete!</h2>
-                <p>Your Phase 2 score: <strong>${phase2Score}</strong></p>
-                <p>Your total combined score: <strong>${totalScore + phase2Score}</strong></p>
-                <p>Thank you for completing both phases!</p>
-                <p>Press any key to continue.</p>
-            `;
-        },
-        post_trial_gap: 500,
+        stimulus: `
+            <div style="max-width: 800px; margin: auto; text-align: left;">
+                <h2>Phase 3 Instructions</h2>
+                <p>In this final phase, we will show you the faces you encountered during the experiment.</p>
+                <p>For each face, we will ask you two questions:</p>
+                <ol>
+                    <li>Whether you think this person is <strong>good</strong> or <strong>bad</strong></li>
+                    <li>How <strong>confident</strong> you are in your judgment</li>
+                </ol>
+                <p>There are no right or wrong answers - we're interested in your impressions.</p>
+                <p>Press any key to start Phase 3.</p>
+            </div>
+        `,
         data: {
-            task: 'phase2_summary',
-            phase2_score: phase2Score,
-            total_combined_score: totalScore + phase2Score
+            task: 'phase3_instructions'
         }
     };
-    timeline.push(phase2Summary);
+    timeline.push(phase3Instructions);
+
+    // Generate Phase 3 trials
+    const phase3Trials = generatePhase3Trials(trials, phase2Trials, faces, jsPsych);
+    let phase3TrialCount = 0;
+
+    console.log('Phase 3 initialized:', {
+        totalTrials: phase3Trials.length,
+        uniqueFaces: phase3Trials.length / 2
+    });
+
+    // Store the last good/bad response for use in confidence trial
+    let lastGoodBadResponse = null;
+
+    // Phase 3 Good/Bad Trial
+    const phase3GoodBadTrial = {
+        type: HtmlButtonResponsePlugin,
+        stimulus: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return `
+                <div style="text-align: center;">
+                    <img src="${face.imagePath}"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
+                    <h3 style="margin-top: 20px;">Do you think this person is good or bad?</h3>
+                </div>
+            `;
+        },
+        choices: ['Bad', 'Good'],
+        button_html: (choice) => `<button class="jspsych-btn" style="font-size: 18px; padding: 15px 40px; margin: 10px;">${choice}</button>`,
+        data: function() {
+            return {
+                task: 'phase3_goodbad',
+                phase: 3,
+                face_id: jsPsych.evaluateTimelineVariable('face').id,
+                face_color: jsPsych.evaluateTimelineVariable('face').color,
+                face_is_good: jsPsych.evaluateTimelineVariable('face').isGood
+            };
+        },
+        on_finish: function(data) {
+            // Store response (0 = Bad, 1 = Good)
+            data.rating = data.response === 0 ? 'bad' : 'good';
+            lastGoodBadResponse = data.rating;
+
+            phase3TrialCount++;
+
+            // Update progress bar
+            // Phase 1 ends at 0.6, Phase 2 ends at 0.7, Phase 3 occupies 0.7 to 1.0 (30% of total bar)
+            const phase3Progress = phase3TrialCount / phase3Trials.length;
+            jsPsych.progressBar.progress = 0.7 + (phase3Progress * 0.3);
+        }
+    };
+
+    // Phase 3 Confidence Trial
+    const phase3ConfidenceTrial = {
+        type: HtmlButtonResponsePlugin,
+        stimulus: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return `
+                <div style="text-align: center;">
+                    <img src="${face.imagePath}"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
+                    <h3 style="margin-top: 20px;">How confident are you that your choice is correct?</h3>
+                </div>
+            `;
+        },
+        choices: [
+            'Very unconfident',
+            'Unconfident',
+            'Slightly unconfident',
+            'Slightly confident',
+            'Confident',
+            'Very confident'
+        ],
+        button_html: (choice) => `<button class="jspsych-btn" style="font-size: 16px; padding: 12px 20px; margin: 5px; min-width: 180px;">${choice}</button>`,
+        data: function() {
+            return {
+                task: 'phase3_confidence',
+                phase: 3,
+                face_id: jsPsych.evaluateTimelineVariable('face').id,
+                face_color: jsPsych.evaluateTimelineVariable('face').color,
+                face_is_good: jsPsych.evaluateTimelineVariable('face').isGood,
+                previous_goodbad_rating: lastGoodBadResponse
+            };
+        },
+        on_finish: function(data) {
+            // Store confidence level (0-5 maps to 1-6)
+            data.confidence_level = data.response + 1;
+            data.confidence_label = [
+                'Very unconfident',
+                'Unconfident',
+                'Slightly unconfident',
+                'Slightly confident',
+                'Confident',
+                'Very confident'
+            ][data.response];
+
+            phase3TrialCount++;
+
+            // Update progress bar
+            // Phase 1 ends at 0.6, Phase 2 ends at 0.7, Phase 3 occupies 0.7 to 1.0 (30% of total bar)
+            const phase3Progress = phase3TrialCount / phase3Trials.length;
+            jsPsych.progressBar.progress = 0.7 + (phase3Progress * 0.3);
+        }
+    };
+
+    // Phase 3 timeline - conditional rendering based on trial type
+    const phase3Timeline = {
+        timeline: [
+            {
+                timeline: [phase3GoodBadTrial],
+                conditional_function: function() {
+                    return jsPsych.evaluateTimelineVariable('trialType') === 'goodbad';
+                }
+            },
+            {
+                timeline: [phase3ConfidenceTrial],
+                conditional_function: function() {
+                    return jsPsych.evaluateTimelineVariable('trialType') === 'confidence';
+                }
+            }
+        ],
+        timeline_variables: phase3Trials
+    };
+    timeline.push(phase3Timeline);
+
+        // Phase 3 Complete
+        const phase3Complete = {
+            type: HtmlKeyboardResponsePlugin,
+            stimulus: `
+                <h2>Phase 3 Complete!</h2>
+                <p>Thank you for providing your ratings.</p>
+                <p>You have completed all phases of the experiment.</p>
+                <p>Press any key to continue.</p>
+            `,
+            post_trial_gap: 500,
+            data: {
+                task: 'phase3_complete'
+            }
+        };
+        timeline.push(phase3Complete);
+    } else {
+        console.log('Debug mode: Skipped Phase 3');
+    }
 
     // ========================================================================
     // END OF EXPERIMENT
@@ -623,5 +842,19 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     timeline.push(endExperiment);
 
     // Run the experiment
-    await jsPsych.run(timeline);
+    // Support simulation mode for development testing
+    if (simulateMode) {
+        // Use jsPsych.simulate() for automated testing
+        // Mode can be 'data-only' (default) or 'visual'
+        const mode = simulateMode === 'visual' ? 'visual' : 'data-only';
+        console.log(`Running in SIMULATION mode: ${mode}`);
+        await jsPsych.simulate(timeline, mode);
+    } else if (debugMode && CONFIG.DEBUG_MODE.ENABLE_SIMULATION) {
+        // Auto-enable visual simulation if configured
+        console.log('Debug mode: Auto-enabling visual simulation');
+        await jsPsych.simulate(timeline, 'visual');
+    } else {
+        // Normal experiment execution
+        await jsPsych.run(timeline);
+    }
 }

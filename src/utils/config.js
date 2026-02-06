@@ -47,6 +47,29 @@ export const CONFIG = {
     // Development mode - disable Firebase data saving
     DISABLE_DATA_SAVING: true,
 
+    // Debug mode settings (activated via ?debug=true URL parameter)
+    DEBUG_MODE: {
+        SKIP_CONSENT: true,           // Skip consent form
+        SKIP_DEMOGRAPHICS: true,      // Skip demographics survey
+        SKIP_PHASE3: false,           // Skip Phase 3 post-task rating (set to true to skip)
+        REDUCE_PHASE1_TRIALS: true,   // Use 1 exposure instead of 3
+        REDUCE_PHASE2_TRIALS: true,   // Use 1 trial per composition instead of 5
+        ENABLE_SIMULATION: false      // Automatically run in simulation mode (visual)
+    },
+
+    // Section jumping for debug mode
+    // Use ?debug=true&section=X to jump directly to a specific section
+    // Available sections: 'all', 'consent', 'demographics', 'phase1', 'phase2', 'phase3', 'end'
+    DEBUG_SECTIONS: {
+        all: ['consent', 'demographics', 'phase1', 'phase2', 'phase3'],
+        consent: ['consent'],
+        demographics: ['demographics'],
+        phase1: ['phase1'],
+        phase2: ['phase2'],
+        phase3: ['phase3'],
+        end: []  // Skip directly to end
+    },
+
     // Phase 2 parameters
     PHASE2_TRIALS_PER_COMPOSITION: 5,
     PHASE2_COMPOSITIONS: [

@@ -38,6 +38,65 @@ http://localhost:8080
 
 The project uses `src/index.js` as a router that automatically selects between `experiment.js` (full) and `experiment_demo.js` (demo) based on the URL parameter.
 
+### Debug Mode
+
+For rapid development and testing, the experiment includes a comprehensive debug mode system:
+
+#### Basic Debug Mode
+```
+http://localhost:8080/?debug=true
+```
+- Skips consent form and demographics survey
+- Reduces Phase 1: 100 trials (1 exposure) instead of 300
+- Reduces Phase 2: 5 trials instead of 25
+- Records debug status in data for filtering
+
+#### Section Jumping
+Jump directly to specific sections for rapid testing:
+
+```
+http://localhost:8080/?debug=true&section=consent       # Only consent form
+http://localhost:8080/?debug=true&section=demographics  # Only demographics
+http://localhost:8080/?debug=true&section=phase1        # Only Phase 1
+http://localhost:8080/?debug=true&section=phase2        # Only Phase 2
+http://localhost:8080/?debug=true&section=phase3        # Only Phase 3
+http://localhost:8080/?debug=true&section=end           # Skip to end
+```
+
+#### Simulation Mode (jsPsych Built-in)
+Automated testing with simulated participant behavior:
+
+```
+http://localhost:8080/?simulate=visual                  # Watch experiment run automatically
+http://localhost:8080/?simulate=data                    # Generate data without visuals
+```
+
+#### Combined Usage
+Combine debug and simulation for fastest iteration:
+
+```
+http://localhost:8080/?debug=true&section=phase3&simulate=visual
+```
+
+**Time Savings:**
+- Full experiment: ~20-25 minutes
+- Debug mode (all phases): ~3-5 minutes
+- Section jumping (single phase): ~30 seconds - 2 minutes
+- Visual simulation: ~10-30 seconds
+
+**Configuration:**
+Debug settings can be customized in `src/utils/config.js`:
+```javascript
+DEBUG_MODE: {
+    SKIP_CONSENT: true,
+    SKIP_DEMOGRAPHICS: true,
+    SKIP_PHASE3: false,
+    REDUCE_PHASE1_TRIALS: true,
+    REDUCE_PHASE2_TRIALS: true,
+    ENABLE_SIMULATION: false
+}
+```
+
 ## Build for Production
 
 Build the experiment for deployment:
@@ -73,6 +132,12 @@ The experiment consists of:
    - Choose 1 face from 4 novel faces
    - No immediate feedback
    - Session summary shown at end
+6. **Phase 3: Post-Task Rating** (~200 trials)
+   - Rate all faces encountered in the experiment
+   - Two questions per face:
+     - **Good/Bad**: Binary choice between "Bad" and "Good"
+     - **Confidence**: 6-level Likert scale (Very unconfident → Very confident)
+   - Face order randomized
 
 ## Experiment Conditions
 
@@ -128,6 +193,11 @@ All hyperparameters are in `src/utils/config.js`:
 - `PHASE2_TRIALS_PER_COMPOSITION`: Trials per composition (default: 5)
 - `PHASE2_COMPOSITIONS`: Array of red:blue ratios (4:0, 3:1, 2:2, 1:3, 0:4)
 
+### Phase 3 Parameters
+- Phase 3 trials are automatically generated based on faces shown in Phases 1 and 2
+- Two trials per unique face: good/bad rating + confidence rating
+- Face presentation order is randomized
+
 ## Project Structure
 
 ```
@@ -168,6 +238,13 @@ Data is automatically saved to Firebase at the end of the experiment. Each parti
 - Face compositions (red:blue ratios)
 - Outcomes (calculated but not shown)
 - Phase 2 total score
+
+### Phase 3 Data
+- Good/bad ratings for each face encountered
+- Confidence ratings (1-6 scale)
+- Face information (ID, color, actual good/bad status)
+- Reaction times for both rating types
+- Link between good/bad rating and corresponding confidence rating
 
 ### Global Data
 - Condition parameters
