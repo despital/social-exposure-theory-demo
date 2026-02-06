@@ -1,25 +1,7 @@
 # TODO - Social Exposure Theory Experiment
 
 ### 1. Add Consent Form, Survey, and Debriefing
-**Status:** In progress
-**Reference:** `experiment_demo.js` (lines 96-130 for consent, 132-214 for demographics)
-
-**Tasks:**
-- [ ] Add post-experiment debriefing screen
-- [ ] Add post-questionnaire for feedback
-  - Technical issues check
-  - Open-ended comments
-
-**Developer Skip Logic:**
-- [ ] Add `DEBUG_MODE` flag to `config.js`
-- [ ] When `DEBUG_MODE: true`:
-  - Skip consent form
-  - Skip demographics
-  - Reduce trials (e.g., 1 exposure per face instead of 3)
-  - Skip post-questionnaire
-- [ ] Activate via URL parameter: `?debug=true`
-
----
+**Status:** Completed
 
 ### 2. Firebase Setup and Testing
 **Status:** Not started (currently using demo credentials)
@@ -43,7 +25,7 @@
 
 ---
 ### 4. Stimuli Integration
-**Status:** in-progess (2026-02-05)
+**Status:** Cancelled
 
 **Tasks:**
 - [ ] Test image loading times
@@ -122,6 +104,10 @@
 - [x] Development documentation
 - [x] Added consent screen
 - [x] Obtained and modify FaceGen stimuli
+- [x] Add post-experiment debriefing screen
+- [x] Add post-questionnaire for feedback
+- [x] Add `DEBUG_MODE` flag to `config.js`
+- [x] Activate via URL parameter: `?debug=true`
 
 ---
 

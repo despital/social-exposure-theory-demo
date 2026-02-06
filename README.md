@@ -236,33 +236,85 @@ social-exposure-theory/
 
 ## Data
 
-Data is automatically saved to Firebase at the end of the experiment. Each participant's data includes:
+### Firebase Configuration
 
-### Phase 1 Data
-- Trial-by-trial choices
-- Outcomes (rewards/punishments)
-- Face information (ID, color, good/bad status)
-- Reaction times
-- Running score
+Data is automatically saved to Firebase Realtime Database at the end of the experiment.
 
-### Phase 2 Data
-- Partner choices
-- Face compositions (red:blue ratios)
-- Outcomes (calculated but not shown)
-- Phase 2 total score
+**Current Status**:
+- ✅ Firebase credentials configured (Social Exposure Theory 2026)
+- ⚠️ Data saving currently **DISABLED** for testing (`DISABLE_DATA_SAVING: true` in [config.js](src/utils/config.js))
+- To enable for production: Set `DISABLE_DATA_SAVING: false`
 
-### Phase 3 Data
-- Good/bad ratings for each face encountered
-- Confidence ratings (1-6 scale)
-- Face information (ID, color, actual good/bad status)
-- Reaction times for both rating types
-- Link between good/bad rating and corresponding confidence rating
+### Data Structure
 
-### Global Data
-- Condition parameters
-- Participant ID
-- Demographics responses
-- Timestamps
+Data is organized by participant in a clean, analysis-ready structure:
+
+```
+participants/
+  {participant_id}/              # Prolific PID or internal_XXXXX
+    metadata:
+      internal_id               # Generated unique ID
+      prolific_pid              # Prolific participant ID (if available)
+      condition                 # equal, majority
+      majority_group            # red, blue
+      informed                  # true, false
+      timestamp                 # ISO timestamp
+      debug_mode                # true, false
+    demographics: {...}         # All survey responses
+    summary:
+      phase1_score
+      phase2_score
+      total_score
+      phase1_trials_count
+      phase2_trials_count
+      phase3_trials_count
+    trials:
+      phase1: [...]             # All Phase 1 trials
+      phase2: [...]             # All Phase 2 trials
+      phase3: [...]             # All Phase 3 trials
+    surveys:
+      technical_check: {...}
+      user_feedback: {...}
+```
+
+### Exporting to CSV
+
+Two scripts are provided to convert Firebase data to CSV for analysis:
+
+**Python**:
+```bash
+pip install pandas requests
+python scripts/firebase_to_csv.py
+```
+
+**R**:
+```r
+install.packages(c("jsonlite", "dplyr", "tidyr", "purrr"))
+source("scripts/firebase_to_csv.R")
+export_all()
+```
+
+Both create 6 CSV files in `data/csv_exports/`:
+- `participants.csv` - Participant metadata and summary scores
+- `demographics.csv` - Demographics responses
+- `phase1_trials.csv` - All Phase 1 trials (long format)
+- `phase2_trials.csv` - All Phase 2 trials (long format)
+- `phase3_trials.csv` - All Phase 3 trials (ratings + confidence)
+- `surveys.csv` - Technical check and user feedback
+
+See [scripts/README.md](scripts/README.md) for detailed documentation.
+
+### Data Collected Per Phase
+
+**Phase 1**: Trial-by-trial choices, outcomes, face information, reaction times, running score
+
+**Phase 2**: Partner choices, face compositions (red:blue ratios), outcomes, Phase 2 score
+
+**Phase 3**: Good/bad ratings, confidence ratings (1-6 scale), face information, reaction times
+
+**Demographics**: Age, gender, ethnicity, education, SES, political orientation, employment, language, location, device type
+
+**Surveys**: Technical issues, clarity rating (0-5), length rating, suggestions
 
 ## Documentation
 

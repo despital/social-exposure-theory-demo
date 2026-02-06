@@ -138,8 +138,8 @@ export function getURLParams(jsPsych) {
         majorityGroup: jsPsych.data.getURLVariable('majority_group') || 'red',
         informed: jsPsych.data.getURLVariable('informed') === 'true',
         participantId: prolificPID || jsPsych.data.getURLVariable('participant_id') || `P${Date.now()}`,
-        studyId: studyID,
-        sessionId: sessionID
+        studyId: studyID || null,
+        sessionId: sessionID || null
     };
 }
 

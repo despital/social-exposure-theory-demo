@@ -48,9 +48,16 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     const sectionParam = jsPsych.data.getURLVariable('section') || 'all'; // Which section(s) to show
 
     // Determine which sections to include
-    const sectionsToShow = debugMode && CONFIG.DEBUG_SECTIONS[sectionParam]
+    let sectionsToShow = debugMode && CONFIG.DEBUG_SECTIONS[sectionParam]
         ? CONFIG.DEBUG_SECTIONS[sectionParam]
-        : ['consent', 'demographics', 'phase1', 'phase2', 'phase3']; // Default: show all
+        : ['consent', 'demographics', 'phase1', 'phase2', 'phase3', 'endsurvey']; // Default: show all
+
+    // If simulation mode is active, automatically skip consent and demographics
+    // (these sections have human-validation requirements that simulation can't handle)
+    if (simulateMode) {
+        sectionsToShow = sectionsToShow.filter(s => s !== 'consent' && s !== 'demographics');
+        console.log('Simulation mode: Auto-skipping consent and demographics (incompatible with simulation)');
+    }
 
     // Helper function to check if a section should be shown
     const shouldShowSection = (section) => sectionsToShow.includes(section);
@@ -81,9 +88,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         database = getDatabase(app);
         auth = getAuth();
 
-        signInAnonymously(auth).catch((error) => {
+        // Wait for anonymous authentication to complete
+        try {
+            await signInAnonymously(auth);
+            console.log("Firebase authentication successful");
+        } catch (error) {
             console.error("Firebase authentication error:", error);
-        });
+        }
     } else {
         console.log("Firebase data saving is DISABLED (development mode)");
     }
@@ -91,6 +102,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // Generate faces and assign good/bad
     let faces = generateFaces();
     faces = assignGoodBad(faces, jsPsych);
+
+    // If debug mode, use only a subset of faces for faster testing
+    if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE1_TRIALS) {
+        const redFaces = faces.filter(f => f.color === 'red').slice(0, 10);
+        const blueFaces = faces.filter(f => f.color === 'blue').slice(0, 10);
+        faces = [...redFaces, ...blueFaces];
+        console.log('Debug mode: Reduced to 20 faces (10 red, 10 blue)');
+    }
 
     // Generate trials using block design
     // If debug mode, override exposures to 1 instead of 3
@@ -456,7 +475,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         },
         prompt: function() {
             return `
-                <div class="score-display">Score: ${totalScore}</div>
                 <p>Choose a person to interact with by clicking on a face:</p>
             `;
         },
@@ -498,14 +516,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             const feedbackText = outcome > 0 ? `+${outcome}` : outcome;
 
             return `
-                <div class="score-display">Score: ${totalScore}</div>
                 <div class="feedback ${feedbackClass}">
                     ${feedbackText}
                 </div>
-                <p>Press any key to continue</p>
             `;
         },
-        trial_duration: 1500,
+        choices: "NO_KEYS",  // Disable keyboard responses
+        trial_duration: 1000,  // Auto-advance after 1 second
         data: {
             task: 'feedback'
         },
@@ -532,7 +549,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             stimulus: function() {
                 return `
                     <h2>Phase 1 Complete!</h2>
-                    <p>Your Phase 1 score: <strong>${totalScore}</strong></p>
                     <p>Great job! You've finished the first part of the experiment.</p>
                     <p>Press any key to continue.</p>
                 `;
@@ -550,6 +566,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     // Big break before Phase 2
     if (shouldShowSection('phase2')) {
+        // Store countdown interval in outer scope to avoid scope issues
+        let breakCountdownInterval = null;
+
         const phase2BreakScreen = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: function() {
@@ -570,21 +589,20 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             let timeLeft = 60;
             const timerElement = document.getElementById('countdown-timer');
 
-            const countdown = setInterval(() => {
+            breakCountdownInterval = setInterval(() => {
                 timeLeft--;
                 if (timerElement) {
                     timerElement.textContent = timeLeft;
                 }
                 if (timeLeft <= 0) {
-                    clearInterval(countdown);
+                    clearInterval(breakCountdownInterval);
                 }
             }, 1000);
-
-            this.countdownInterval = countdown;
         },
         on_finish: function() {
-            if (this.countdownInterval) {
-                clearInterval(this.countdownInterval);
+            if (breakCountdownInterval) {
+                clearInterval(breakCountdownInterval);
+                breakCountdownInterval = null;
             }
         },
         data: {
@@ -636,12 +654,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         grid_columns: 2,
         gap: 20,
         data: function() {
+            const composition = jsPsych.evaluateTimelineVariable('composition');
             return {
                 task: 'phase2_choice',
                 phase: 2,
-                composition: jsPsych.evaluateTimelineVariable('composition'),
-                red_count: jsPsych.evaluateTimelineVariable('redCount'),
-                blue_count: jsPsych.evaluateTimelineVariable('blueCount')
+                composition: composition,
+                red_count: composition.red,
+                blue_count: composition.blue
             };
         },
         on_finish: function(data) {
@@ -1062,15 +1081,74 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             choices: [],
             on_finish: function() {
                 if (auth.currentUser) {
-                    const tmp = new Uint32Array(1);
-                    window.crypto.getRandomValues(tmp);
-                    const dbpath = auth.currentUser.uid + '/' + tmp[0];
+                    console.log("Authenticated user detected, preparing to save data...");
 
-                    set(ref(database, dbpath), {
-                        data: jsPsych.data.get().values(),
-                        study: 'social_exposure_theory_phase1',
-                        date: Date()
-                    });
+                    // Generate internal ID (fallback if Prolific ID missing)
+                    const internalId = new Uint32Array(1);
+                    window.crypto.getRandomValues(internalId);
+
+                    // Use Prolific ID if available, otherwise use internal ID
+                    const participantKey = urlParams.participantId || `internal_${internalId[0]}`;
+
+                    // Get all trial data
+                    const allData = jsPsych.data.get().values();
+
+                    // Separate data by task type
+                    const phase1Data = allData.filter(d => d.phase === 1);
+                    const phase2Data = allData.filter(d => d.phase === 2);
+                    const phase3Data = allData.filter(d => d.phase === 3);
+                    const demographicsData = allData.find(d => d.task === 'demographics');
+                    const technicalCheckData = allData.find(d => d.task === 'endsurvey_technical_check');
+                    const userFeedbackData = allData.find(d => d.task === 'endsurvey_user_feedback');
+
+                    // Build structured data object
+                    const structuredData = {
+                        metadata: {
+                            internal_id: `internal_${internalId[0]}`,
+                            prolific_pid: urlParams.participantId || null,
+                            study_id: urlParams.studyId || null,
+                            session_id: urlParams.sessionId || null,
+                            condition: urlParams.condition,
+                            majority_group: urlParams.majorityGroup,
+                            informed: urlParams.informed,
+                            timestamp: new Date().toISOString(),
+                            date_readable: new Date().toLocaleString(),
+                            debug_mode: debugMode
+                        },
+                        demographics: demographicsData ? demographicsData.response : null,
+                        summary: {
+                            phase1_score: totalScore,
+                            phase2_score: phase2Score,
+                            total_score: totalScore + phase2Score,
+                            phase1_trials_count: phase1Data.length,
+                            phase2_trials_count: phase2Data.length,
+                            phase3_trials_count: phase3Data.length
+                        },
+                        trials: {
+                            phase1: phase1Data,
+                            phase2: phase2Data,
+                            phase3: phase3Data
+                        },
+                        surveys: {
+                            technical_check: technicalCheckData ? technicalCheckData.response : null,
+                            user_feedback: userFeedbackData ? userFeedbackData.response : null
+                        }
+                    };
+
+                    // Save to Firebase with participant ID as key
+                    const dbpath = `participants/${participantKey}`;
+
+                    set(ref(database, dbpath), structuredData)
+                        .then(() => {
+                            console.log('✅ Data saved successfully to Firebase:', dbpath);
+                        })
+                        .catch((error) => {
+                            console.error('❌ Error saving data to Firebase:', error);
+                            alert('Error saving data: ' + error.message);
+                        });
+                } else {
+                    console.error('❌ Cannot save data: User not authenticated');
+                    alert('Error: Not authenticated. Data could not be saved.');
                 }
             }
         };

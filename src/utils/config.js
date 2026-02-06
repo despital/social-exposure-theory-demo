@@ -32,26 +32,26 @@ export const CONFIG = {
     REWARD_VALUE: 1,
     PUNISHMENT_VALUE: -5,
 
-    // Firebase configuration (from demo - READ ONLY, will not write data)
+    // Firebase configuration - Social Exposure Theory 2026
     FIREBASE_CONFIG: {
-        apiKey: "AIzaSyDRiXU9n0kSDKaRoMcp02_W4sfd-xrjADQ",
-        authDomain: "bwlabsummer2022bridgerating.firebaseapp.com",
-        databaseURL: "https://bwlabsummer2022bridgerating-default-rtdb.firebaseio.com",
-        projectId: "bwlabsummer2022bridgerating",
-        storageBucket: "bwlabsummer2022bridgerating.appspot.com",
-        messagingSenderId: "357648218957",
-        appId: "1:357648218957:web:1d91c083af04f494dc5504",
-        measurementId: "G-79YVWTZZEZ"
+        apiKey: "AIzaSyCAtUZBBpJKiF3pI3CHCTeKxk_ayyiGs3I",
+        authDomain: "socialexposuretheory2026.firebaseapp.com",
+        databaseURL: "https://socialexposuretheory2026-default-rtdb.firebaseio.com",
+        projectId: "socialexposuretheory2026",
+        storageBucket: "socialexposuretheory2026.firebasestorage.app",
+        messagingSenderId: "864406557205",
+        appId: "1:864406557205:web:5b35e2ee0504357baab41c"
     },
 
     // Development mode - disable Firebase data saving
-    DISABLE_DATA_SAVING: true,
+    // Set to false when ready for production data collection
+    DISABLE_DATA_SAVING: false,
 
     // Debug mode settings (activated via ?debug=true URL parameter)
     DEBUG_MODE: {
         SKIP_CONSENT: true,           // Skip consent form
         SKIP_DEMOGRAPHICS: true,      // Skip demographics survey
-        SKIP_PHASE3: false,           // Skip Phase 3 post-task rating (set to true to skip)
+        SKIP_PHASE3: true,            // Skip Phase 3 post-task rating (set to true to skip) - TEMPORARILY TRUE FOR TESTING
         REDUCE_PHASE1_TRIALS: true,   // Use 1 exposure instead of 3
         REDUCE_PHASE2_TRIALS: true,   // Use 1 trial per composition instead of 5
         ENABLE_SIMULATION: false      // Automatically run in simulation mode (visual)
