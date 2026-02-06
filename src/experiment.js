@@ -792,21 +792,188 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // END OF EXPERIMENT
     // ========================================================================
 
-    const finish = {
-        type: HtmlKeyboardResponsePlugin,
-        stimulus: function() {
-            return `
-                <h2>Experiment Complete!</h2>
-                <p>Phase 1 score: <strong>${totalScore}</strong></p>
-                <p>Phase 2 score: <strong>${phase2Score}</strong></p>
-                <p>Total combined score: <strong>${totalScore + phase2Score}</strong></p>
-                <p>Thank you for participating.</p>
-                <p>Press any key to save your data.</p>
-            `;
-        },
-        post_trial_gap: 500
-    };
-    timeline.push(finish);
+    // ========================================================================
+    // END OF EXPERIMENT SECTION
+    // ========================================================================
+
+    if (shouldShowSection('endsurvey')) {
+        // 1. Congratulations Screen
+        const congratulations = {
+            type: HtmlButtonResponsePlugin,
+            stimulus: `
+                <h1>Congratulations!</h1>
+                <p>You have successfully completed the experiment.</p>
+                <p>Before we finish, we have a few final questions for you.</p>
+            `,
+            choices: ['Continue'],
+            data: {
+                task: 'endsurvey_congratulations'
+            }
+        };
+        timeline.push(congratulations);
+
+        // 2. Debriefing Screen
+        const debriefing = {
+            type: HtmlButtonResponsePlugin,
+            stimulus: `
+                <div style="max-width: 800px; margin: auto; text-align: left;">
+                    <h2>About This Study</h2>
+                    <p>Thank you for your participation in this experiment!</p>
+                    <p><strong>Purpose:</strong> This study investigates how people form impressions and make decisions about social partners. We are particularly interested in how exposure to different individuals affects approach-avoidance behavior and whether group membership influences these decisions.</p>
+                    <p><strong>What you did:</strong></p>
+                    <ul>
+                        <li><strong>Phase 1:</strong> You learned which individuals tend to give rewards versus punishments through direct experience.</li>
+                        <li><strong>Phase 2:</strong> You made choices about novel individuals, allowing us to see how your learning generalized.</li>
+                        <li><strong>Phase 3:</strong> You rated the faces you encountered, helping us understand your explicit attitudes.</li>
+                    </ul>
+                    <p><strong>Background colors:</strong> The red and blue backgrounds represented different social groups. We varied the composition of these groups to study social learning and decision-making.</p>
+                    <p>Your responses will help us better understand the psychological mechanisms underlying social interaction and group dynamics.</p>
+                </div>
+            `,
+            choices: ['Continue'],
+            data: {
+                task: 'endsurvey_debriefing'
+            }
+        };
+        timeline.push(debriefing);
+
+        // 3. Technical Check Survey (with conditional logic)
+        const technicalCheck = {
+            type: survey,
+            survey_json: {
+                showQuestionNumbers: false,
+                completeText: 'Continue',
+                pages: [
+                    {
+                        name: 'technical_page',
+                        elements: [
+                            {
+                                type: 'radiogroup',
+                                title: 'Did all images load properly during the experiment?',
+                                name: 'images_loaded',
+                                isRequired: true,
+                                choices: ['Yes, all images loaded', 'No, some images did not load', 'Not sure']
+                            },
+                            {
+                                type: 'radiogroup',
+                                title: 'Did you encounter any other technical difficulties during the experiment?',
+                                name: 'technical_difficulties',
+                                isRequired: true,
+                                choices: ['Yes', 'No']
+                            },
+                            {
+                                type: 'comment',
+                                title: 'Please describe the technical difficulties you encountered:',
+                                name: 'technical_difficulties_details',
+                                visibleIf: '{technical_difficulties} = "Yes"',
+                                isRequired: false,
+                                rows: 4
+                            }
+                        ]
+                    }
+                ]
+            },
+            data: {
+                task: 'endsurvey_technical_check'
+            }
+        };
+        timeline.push(technicalCheck);
+
+        // 4. User Feedback Survey
+        const userFeedback = {
+            type: survey,
+            survey_json: {
+                showQuestionNumbers: false,
+                completeText: 'Continue',
+                pages: [
+                    {
+                        name: 'feedback_page',
+                        elements: [
+                            {
+                                type: 'rating',
+                                title: 'How clear was the design of the experiment? Did you understand what you were supposed to do?',
+                                name: 'clarity_rating',
+                                isRequired: true,
+                                rateMin: 0,
+                                rateMax: 5,
+                                minRateDescription: '0 (Very unclear)',
+                                maxRateDescription: '5 (Very clear)'
+                            },
+                            {
+                                type: 'radiogroup',
+                                title: 'How would you describe the length of the experiment?',
+                                name: 'length_rating',
+                                isRequired: true,
+                                choices: [
+                                    'Much too short',
+                                    'Somewhat too short',
+                                    'Just right',
+                                    'Somewhat too long',
+                                    'Much too long'
+                                ]
+                            },
+                            {
+                                type: 'comment',
+                                title: 'Do you have any suggestions for improving the experiment design?',
+                                name: 'suggestions',
+                                isRequired: false,
+                                rows: 5,
+                                placeholder: 'Please share any thoughts on how we could improve the experiment...'
+                            }
+                        ]
+                    }
+                ]
+            },
+            data: {
+                task: 'endsurvey_user_feedback'
+            }
+        };
+        timeline.push(userFeedback);
+
+        // 5. Final Thank You Screen with Scores
+        const finalThankYou = {
+            type: HtmlButtonResponsePlugin,
+            stimulus: function() {
+                return `
+                    <div style="max-width: 600px; margin: auto;">
+                        <h1>Thank You!</h1>
+                        <p>Your participation is greatly appreciated.</p>
+                        <h3>Your Performance:</h3>
+                        <div style="background-color: #f0f0f0; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                            <p style="font-size: 18px; margin: 10px 0;">Phase 1 Score: <strong>${totalScore}</strong></p>
+                            <p style="font-size: 18px; margin: 10px 0;">Phase 2 Score: <strong>${phase2Score}</strong></p>
+                            <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">Total Score: <strong>${totalScore + phase2Score}</strong></p>
+                        </div>
+                        <p>Your data will be saved in the next step.</p>
+                    </div>
+                `;
+            },
+            choices: ['Save Data'],
+            data: {
+                task: 'endsurvey_final_thank_you'
+            }
+        };
+        timeline.push(finalThankYou);
+    } else {
+        console.log('Debug mode: Skipped end-of-experiment surveys');
+
+        // Simplified finish screen when surveys are skipped
+        const finish = {
+            type: HtmlKeyboardResponsePlugin,
+            stimulus: function() {
+                return `
+                    <h2>Experiment Complete!</h2>
+                    <p>Phase 1 score: <strong>${totalScore}</strong></p>
+                    <p>Phase 2 score: <strong>${phase2Score}</strong></p>
+                    <p>Total combined score: <strong>${totalScore + phase2Score}</strong></p>
+                    <p>Thank you for participating.</p>
+                    <p>Press any key to save your data.</p>
+                `;
+            },
+            post_trial_gap: 500
+        };
+        timeline.push(finish);
+    }
 
     // Save data to Firebase (only if enabled)
     if (!CONFIG.DISABLE_DATA_SAVING && auth) {

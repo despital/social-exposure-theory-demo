@@ -59,14 +59,15 @@ export const CONFIG = {
 
     // Section jumping for debug mode
     // Use ?debug=true&section=X to jump directly to a specific section
-    // Available sections: 'all', 'consent', 'demographics', 'phase1', 'phase2', 'phase3', 'end'
+    // Available sections: 'all', 'consent', 'demographics', 'phase1', 'phase2', 'phase3', 'endsurvey', 'end'
     DEBUG_SECTIONS: {
-        all: ['consent', 'demographics', 'phase1', 'phase2', 'phase3'],
+        all: ['consent', 'demographics', 'phase1', 'phase2', 'phase3', 'endsurvey'],
         consent: ['consent'],
         demographics: ['demographics'],
         phase1: ['phase1'],
         phase2: ['phase2'],
         phase3: ['phase3'],
+        endsurvey: ['endsurvey'],
         end: []  // Skip directly to end
     },
 

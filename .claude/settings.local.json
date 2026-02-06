@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(python:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:www.jspsych.org)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd Phase 3 post-task rating and comprehensive debug mode\n\nPhase 3 Implementation:\n- Added post-task rating phase where participants rate all encountered faces\n- Two-question format: good/bad binary choice + 6-level confidence rating\n- Face presentation order randomized\n- Progress bar properly distributed across all three phases \\(60%/10%/30%\\)\n- Collects ~200 trials \\(2 per unique face\\)\n\nDebug Mode Features:\n- Basic debug mode: Skip consent/demographics, reduce trial counts\n- Section jumping: Jump directly to any phase \\(consent, demographics, phase1, phase2, phase3, end\\)\n- Simulation mode integration: Visual or data-only automated testing\n- URL parameters: ?debug=true&section=X&simulate=visual\n- Console logging for transparency\n\nTechnical Fixes:\n- Fixed button_html to use function syntax \\(jsPsych v8 compatibility\\)\n- Fixed progress bar overflow \\(was exceeding 1.0 limit\\)\n- Proper scope management for trial generation\n\nFiles Modified:\n- src/experiment.js: Added Phase 3 trials, debug mode, section jumping\n- src/utils/helpers.js: Added generatePhase3Trials\\(\\) function\n- src/utils/config.js: Added DEBUG_MODE and DEBUG_SECTIONS config\n- README.md: Updated with Phase 3 info and debug mode documentation\n- docs/DEV_LOG.md: Added Session 3 entry with comprehensive documentation\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)"
     ]
   }
 }

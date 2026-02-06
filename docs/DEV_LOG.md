@@ -3,8 +3,102 @@
 ## Project Overview
 A jsPsych-based experiment investigating approach-avoidance behavior towards in-group vs. out-group members in a social exposure paradigm.
 
-**Current Status:** Phase 1-3 Complete + Debug Mode ✅
+**Current Status:** Full Experiment Complete (Phase 1-3 + End-of-Experiment Section) ✅
 **Last Updated:** 2026-02-06
+
+---
+
+## Session 4: End-of-Experiment Section (2026-02-06)
+
+### What We Did
+
+#### Implemented Comprehensive End-of-Experiment Section
+Added a complete end-of-experiment workflow after Phase 3 to collect final feedback and debrief participants.
+
+**Structure:**
+1. **Congratulations Screen**
+   - Acknowledges completion of all experiment phases
+   - Prepares participants for final questions
+
+2. **Debriefing Screen**
+   - Explains the study's purpose: investigating social learning and decision-making
+   - Describes what participants did in each phase:
+     - Phase 1: Learning about individuals through rewards/punishments
+     - Phase 2: Generalizing learning to novel individuals
+     - Phase 3: Explicit attitude ratings
+   - Clarifies the meaning of background colors (red/blue social groups)
+
+3. **Technical Check Survey** (with conditional logic)
+   - Image loading check: "Did all images load properly?"
+   - Technical difficulties: Yes/No question
+   - **Conditional follow-up**: If "Yes" to difficulties, text area appears for details
+   - Uses SurveyJS `visibleIf` for conditional logic
+
+4. **User Feedback Survey**
+   - **Clarity Rating**: 0-5 scale ("How clear was the experiment design?")
+     - Changed from binary yes/no to rating scale per user request
+   - **Length Rating**: 5-point scale from "Much too short" to "Much too long"
+     - Reworded to gauge appropriateness of experiment duration
+   - **Open-ended Suggestions**: Multi-line text area for improvement ideas
+
+5. **Final Thank You Screen with Scores**
+   - Displays participant performance in styled box:
+     - Phase 1 Score
+     - Phase 2 Score
+     - Total Score (highlighted in green)
+   - Notifies that data will be saved next
+   - Button: "Save Data"
+
+**Debug Mode Integration:**
+- Added `endsurvey` to `DEBUG_SECTIONS` in config.js
+- Can jump directly to end-of-experiment section: `?debug=true&section=endsurvey`
+- When section is skipped in debug mode, shows simplified finish screen (original behavior)
+
+**Files Modified:**
+- `src/utils/config.js`:
+  - Added `endsurvey` to `DEBUG_SECTIONS` (line 69)
+  - Available sections now: consent, demographics, phase1, phase2, phase3, endsurvey, end
+- `src/experiment.js`:
+  - Replaced single finish screen with comprehensive end section (lines 795-968)
+  - All screens conditionally rendered based on `shouldShowSection('endsurvey')`
+  - Maintains backward compatibility with simplified screen when skipped
+- `README.md`:
+  - Updated Section Jumping documentation to include endsurvey
+  - Updated Experiment Structure to list all 8 sections including end section and data saving
+- `docs/DEV_LOG.md`:
+  - Added Session 4 entry (this section)
+
+**Data Collected:**
+- `task: 'endsurvey_congratulations'` - Congratulations screen
+- `task: 'endsurvey_debriefing'` - Debriefing screen
+- `task: 'endsurvey_technical_check'` - Technical check survey responses
+  - `images_loaded`: Yes/No/Not sure
+  - `technical_difficulties`: Yes/No
+  - `technical_difficulties_details`: Text (conditional)
+- `task: 'endsurvey_user_feedback'` - User feedback survey responses
+  - `clarity_rating`: 0-5 scale
+  - `length_rating`: 5-point categorical scale
+  - `suggestions`: Open-ended text
+- `task: 'endsurvey_final_thank_you'` - Final thank you screen
+
+**Survey Plugin Features Used:**
+- Multi-page surveys with `pages` array
+- Conditional visibility with `visibleIf` property
+- Rating scales with min/max descriptions
+- Comment boxes with customizable rows and placeholders
+- Required/optional field validation
+
+### Testing Workflow
+```bash
+# Test only the end-of-experiment section
+http://localhost:8080/?debug=true&section=endsurvey
+
+# Test with visual simulation for rapid iteration
+http://localhost:8080/?debug=true&section=endsurvey&simulate=visual
+
+# Run full experiment with all sections
+http://localhost:8080/?debug=true
+```
 
 ---
 

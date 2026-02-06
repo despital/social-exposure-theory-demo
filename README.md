@@ -60,6 +60,7 @@ http://localhost:8080/?debug=true&section=demographics  # Only demographics
 http://localhost:8080/?debug=true&section=phase1        # Only Phase 1
 http://localhost:8080/?debug=true&section=phase2        # Only Phase 2
 http://localhost:8080/?debug=true&section=phase3        # Only Phase 3
+http://localhost:8080/?debug=true&section=endsurvey     # Only end-of-experiment surveys
 http://localhost:8080/?debug=true&section=end           # Skip to end
 ```
 
@@ -138,6 +139,13 @@ The experiment consists of:
      - **Good/Bad**: Binary choice between "Bad" and "Good"
      - **Confidence**: 6-level Likert scale (Very unconfident → Very confident)
    - Face order randomized
+7. **End-of-Experiment Section**
+   - Congratulations screen
+   - Debriefing (explains study purpose and design)
+   - Technical check survey (image loading, technical difficulties with conditional follow-up)
+   - User feedback survey (clarity 0-5, length rating, open-ended suggestions)
+   - Final thank you screen with performance scores
+8. **Data Saving** - Automatic save to Firebase (if enabled)
 
 ## Experiment Conditions
 
