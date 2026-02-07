@@ -51,10 +51,10 @@ export const CONFIG = {
     DEBUG_MODE: {
         SKIP_CONSENT: true,           // Skip consent form
         SKIP_DEMOGRAPHICS: true,      // Skip demographics survey
-        SKIP_PHASE3: true,            // Skip Phase 3 post-task rating (set to true to skip)
+        REDUCE_PHASE3_TRIALS: true,   // Rate only 5 faces instead of all (10 trials total)
         REDUCE_PHASE1_TRIALS: true,   // Use 1 exposure instead of 3
         REDUCE_PHASE2_TRIALS: true,   // Use 1 trial per composition instead of 5
-        ENABLE_SIMULATION: false      // Automatically run in simulation mode (visual)
+        ENABLE_AUTOCLICK: false       // Auto-click through trials (also available via ?debug=true&autoclick=true)
     },
 
     // Section jumping for debug mode

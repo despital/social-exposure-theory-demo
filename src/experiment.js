@@ -52,7 +52,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     // Check for debug mode
     const debugMode = jsPsych.data.getURLVariable('debug') === 'true';
-    const simulateMode = jsPsych.data.getURLVariable('simulate'); // 'data', 'visual', or null
     const sectionParam = jsPsych.data.getURLVariable('section') || 'all'; // Which section(s) to show
 
     // Determine which sections to include
@@ -60,11 +59,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         ? CONFIG.DEBUG_SECTIONS[sectionParam]
         : ['consent', 'demographics', 'phase1', 'phase2', 'phase3', 'endsurvey']; // Default: show all
 
-    // If simulation mode is active, automatically skip consent and demographics
-    // (these sections have human-validation requirements that simulation can't handle)
-    if (simulateMode) {
-        sectionsToShow = sectionsToShow.filter(s => s !== 'consent' && s !== 'demographics');
-        console.log('Simulation mode: Auto-skipping consent and demographics (incompatible with simulation)');
+    // Apply debug mode skip flags
+    if (debugMode) {
+        if (CONFIG.DEBUG_MODE.SKIP_CONSENT) sectionsToShow = sectionsToShow.filter(s => s !== 'consent');
+        if (CONFIG.DEBUG_MODE.SKIP_DEMOGRAPHICS) sectionsToShow = sectionsToShow.filter(s => s !== 'demographics');
     }
 
     // Helper function to check if a section should be shown
@@ -74,10 +72,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     if (debugMode) {
         console.log('Section:', sectionParam, '-> Showing:', sectionsToShow);
     }
-    if (simulateMode) {
-        console.log('Simulation mode:', simulateMode);
-    }
-
     // Add experiment properties to all data
     jsPsych.data.addProperties({
         participant_id: urlParams.participantId,
@@ -741,7 +735,15 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     timeline.push(phase3Instructions);
 
     // Generate Phase 3 trials
-    const phase3Trials = generatePhase3Trials(trials, phase2Trials, faces, jsPsych);
+    let phase3Trials = generatePhase3Trials(trials, phase2Trials, faces, jsPsych);
+
+    // In debug mode, reduce to 5 faces (10 trials: 5 goodbad + 5 confidence)
+    if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE3_TRIALS) {
+        const maxFaces = 5;
+        phase3Trials = phase3Trials.slice(0, maxFaces * 2);
+        console.log('Debug mode: Reduced Phase 3 to ' + maxFaces + ' faces (' + phase3Trials.length + ' trials)');
+    }
+
     let phase3TrialCount = 0;
 
     console.log('Phase 3 initialized:', {
@@ -1161,20 +1163,42 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     };
     timeline.push(endExperiment);
 
-    // Run the experiment
-    // Support simulation mode for development testing
-    if (simulateMode) {
-        // Use jsPsych.simulate() for automated testing
-        // Mode can be 'data-only' (default) or 'visual'
-        const mode = simulateMode === 'visual' ? 'visual' : 'data-only';
-        console.log(`Running in SIMULATION mode: ${mode}`);
-        await jsPsych.simulate(timeline, mode);
-    } else if (debugMode && CONFIG.DEBUG_MODE.ENABLE_SIMULATION) {
-        // Auto-enable visual simulation if configured
-        console.log('Debug mode: Auto-enabling visual simulation');
-        await jsPsych.simulate(timeline, 'visual');
-    } else {
-        // Normal experiment execution
-        await jsPsych.run(timeline);
+    // Auto-click mechanism for debug testing
+    // Activates via ?debug=true&autoclick=true or CONFIG.DEBUG_MODE.ENABLE_AUTOCLICK
+    // Automatically clicks through trials by detecting clickable elements in the DOM
+    const autoclickParam = jsPsych.data.getURLVariable('autoclick') === 'true';
+    if (debugMode && (autoclickParam || CONFIG.DEBUG_MODE.ENABLE_AUTOCLICK)) {
+        const AUTOCLICK_DELAY = 100; // ms before auto-clicking each trial
+        let autoclickPending = false;
+
+        const observer = new MutationObserver(() => {
+            if (autoclickPending) return;
+            autoclickPending = true;
+
+            setTimeout(() => {
+                autoclickPending = false;
+
+                // Custom plugin: click a face option
+                const imageChoice = document.querySelector('.image-multi-choice-option');
+                if (imageChoice) { imageChoice.click(); return; }
+
+                // Button response plugin: click a button
+                const button = document.querySelector('.jspsych-btn');
+                if (button) { button.click(); return; }
+
+                // Keyboard response plugin: dispatch a keypress
+                const keyboardStimulus = document.querySelector('#jspsych-html-keyboard-response-stimulus');
+                if (keyboardStimulus) {
+                    document.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+                    document.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
+                }
+            }, AUTOCLICK_DELAY);
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+        console.log('Debug mode: Auto-click ENABLED (delay: ' + AUTOCLICK_DELAY + 'ms)');
     }
+
+    // Run the experiment
+    await jsPsych.run(timeline);
 }

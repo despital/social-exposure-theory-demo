@@ -3,12 +3,13 @@
 **Last Updated:** 2026-02-07
 
 ---
+## Development
+### Phase 2 Design
+- [ ] Discuss phase 2 design points again 
 
 ## Pre-Launch (Priority)
 
 ### Firebase Production Setup
-- [ ] Verify Firebase Security Rules are active
-- [ ] Set `DISABLE_DATA_SAVING: false` in `config.js`
 - [ ] Test data saving with pilot participants
 - [ ] Set up data backup/monitoring schedule
 
@@ -84,3 +85,7 @@
 - [x] Public-facing README
 - [x] Data export guides
 - [x] Configuration documentation
+
+**Firebase:**
+- [x] Verify Firebase Security Rules are active
+- [x] Set `DISABLE_DATA_SAVING: false` in `config.js`
