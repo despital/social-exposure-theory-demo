@@ -1,16 +1,27 @@
 # Data Export Scripts
 
-This folder contains scripts to download and convert data from Firebase to CSV format for analysis.
+This folder contains scripts to convert manually downloaded Firebase data to CSV format for analysis.
 
 ## Quick Start
 
-### Python
+### Step 1: Download Data from Firebase
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project: **socialexposuretheory2026**
+3. Navigate to **Realtime Database**
+4. Click on the **participants** node
+5. Click the **⋮** menu → **Export JSON**
+6. Save the file as: `data/firebase_export.json`
+
+### Step 2: Convert to CSV
+
+**Python:**
 ```bash
-pip install pandas requests
+pip install pandas
 python scripts/firebase_to_csv.py
 ```
 
-### R
+**R:**
 ```r
 install.packages(c("jsonlite", "dplyr", "tidyr", "purrr"))
 source("scripts/firebase_to_csv.R")

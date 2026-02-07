@@ -279,11 +279,19 @@ participants/
 
 ### Exporting to CSV
 
-Two scripts are provided to convert Firebase data to CSV for analysis:
+**Step 1: Download data from Firebase Console**
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select project: **socialexposuretheory2026**
+3. Navigate to **Realtime Database**
+4. Click on **participants** node
+5. Click **⋮** menu → **Export JSON**
+6. Save as: `data/firebase_export.json`
+
+**Step 2: Convert to CSV using Python or R**
 
 **Python**:
 ```bash
-pip install pandas requests
+pip install pandas
 python scripts/firebase_to_csv.py
 ```
 
@@ -294,7 +302,7 @@ source("scripts/firebase_to_csv.R")
 export_all()
 ```
 
-Both create 6 CSV files in `data/csv_exports/`:
+Both scripts create 6 CSV files in `data/csv_exports/`:
 - `participants.csv` - Participant metadata and summary scores
 - `demographics.csv` - Demographics responses
 - `phase1_trials.csv` - All Phase 1 trials (long format)

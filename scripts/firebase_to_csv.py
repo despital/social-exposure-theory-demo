@@ -1,13 +1,21 @@
 """
 Firebase to CSV Converter for Social Exposure Theory Experiment
 
-This script downloads data from Firebase Realtime Database and converts it to CSV files
-for analysis in R/Python.
+This script converts manually downloaded Firebase data to CSV files for analysis in R/Python.
 
-Usage:
-    python firebase_to_csv.py
+How to use:
+    1. Download data from Firebase Console:
+       - Go to https://console.firebase.google.com/
+       - Select your project: socialexposuretheory2026
+       - Go to Realtime Database
+       - Click on "participants" node
+       - Click the ⋮ menu → Export JSON
+       - Save as: data/firebase_export.json
 
-Output:
+    2. Run this script:
+       python scripts/firebase_to_csv.py
+
+Output (in data/csv_exports/):
     - participants.csv: One row per participant with metadata and summary scores
     - phase1_trials.csv: All Phase 1 trials (long format)
     - phase2_trials.csv: All Phase 2 trials (long format)
@@ -19,37 +27,51 @@ Output:
 import json
 import pandas as pd
 from pathlib import Path
-import requests
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
 
-# Firebase configuration - update with your project details
-FIREBASE_URL = "https://socialexposuretheory2026-default-rtdb.firebaseio.com"
-DATABASE_PATH = "/participants.json"
+# Input file (manually downloaded from Firebase)
+INPUT_FILE = Path("data/firebase_export.json")
 
 # Output directory
 OUTPUT_DIR = Path("data/csv_exports")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ============================================================================
-# DOWNLOAD DATA FROM FIREBASE
+# LOAD DATA FROM FILE
 # ============================================================================
 
-def download_firebase_data():
-    """Download data from Firebase Realtime Database"""
-    url = f"{FIREBASE_URL}{DATABASE_PATH}"
+def load_firebase_data():
+    """Load data from manually downloaded Firebase JSON file"""
+    if not INPUT_FILE.exists():
+        raise FileNotFoundError(
+            f"\n❌ Error: {INPUT_FILE} not found!\n\n"
+            f"Please download your Firebase data first:\n"
+            f"  1. Go to Firebase Console: https://console.firebase.google.com/\n"
+            f"  2. Select project: socialexposuretheory2026\n"
+            f"  3. Go to Realtime Database\n"
+            f"  4. Click on 'participants' node\n"
+            f"  5. Click ⋮ menu → Export JSON\n"
+            f"  6. Save as: {INPUT_FILE}\n"
+        )
 
-    print(f"Downloading data from {url}...")
-    response = requests.get(url)
+    print(f"Loading data from {INPUT_FILE}...")
+    with open(INPUT_FILE, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
-    if response.status_code == 200:
-        data = response.json()
-        print(f"✓ Downloaded data for {len(data)} participants")
-        return data
-    else:
-        raise Exception(f"Failed to download data: {response.status_code}")
+    # Firebase export includes a wrapper with the node name
+    # Extract the participants node if it exists
+    if isinstance(data, dict) and 'participants' in data:
+        print("✓ Detected Firebase export format, extracting participants node...")
+        data = data['participants']
+
+    if data is None or len(data) == 0:
+        raise ValueError("Firebase export file is empty or contains no participants")
+
+    print(f"✓ Loaded data for {len(data)} participants")
+    return data
 
 # ============================================================================
 # CONVERT TO CSV
@@ -149,10 +171,10 @@ def flatten_surveys(firebase_data):
 # ============================================================================
 
 def export_all():
-    """Main function to download and export all data"""
+    """Main function to load and export all data to CSV files"""
 
-    # Download data
-    firebase_data = download_firebase_data()
+    # Load data from manually downloaded file
+    firebase_data = load_firebase_data()
 
     # Export participants
     print("\nExporting participants.csv...")

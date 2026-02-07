@@ -1,0 +1,121 @@
+participant_id,block,chosen_face_color,chosen_face_id,chosen_face_is_good,condition,debug_mode,images,informed,majority_group,outcome,phase,response,rt,task,time_elapsed,total_score,trial_in_block,trial_index,trial_type,plugin_version,stimulus
+P1770483825689,1,red,58,TRUE,equal,TRUE,"[{'color': 'red', 'id': 58, 'isGood': True, 'src': 'stimuli/faces/face_058_red.png'}, {'color': 'blue', 'id': 90, 'isGood': True, 'src': 'stimuli/faces/face_090_blue.png'}, {'color': 'blue', 'id': 37, 'isGood': True, 'src': 'stimuli/faces/face_037_blue.png'}, {'color': 'red', 'id': 0, 'isGood': True, 'src': 'stimuli/faces/face_000_red.png'}]",FALSE,red,1,1,0,2615,choice,92580,1,1,6,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,93589,,,7,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,19,FALSE,equal,TRUE,"[{'color': 'blue', 'id': 90, 'isGood': True, 'src': 'stimuli/faces/face_090_blue.png'}, {'color': 'blue', 'id': 19, 'isGood': False, 'src': 'stimuli/faces/face_019_blue.png'}, {'color': 'red', 'id': 83, 'isGood': False, 'src': 'stimuli/faces/face_083_red.png'}, {'color': 'blue', 'id': 85, 'isGood': True, 'src': 'stimuli/faces/face_085_blue.png'}]",FALSE,red,1,1,1,337,choice,93925,2,2,8,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,94928,,,9,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,44,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 20, 'isGood': True, 'src': 'stimuli/faces/face_020_blue.png'}, {'color': 'red', 'id': 44, 'isGood': True, 'src': 'stimuli/faces/face_044_red.png'}, {'color': 'red', 'id': 67, 'isGood': True, 'src': 'stimuli/faces/face_067_red.png'}, {'color': 'blue', 'id': 19, 'isGood': False, 'src': 'stimuli/faces/face_019_blue.png'}]",FALSE,red,1,1,1,257,choice,95186,3,3,10,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,96194,,,11,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,69,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 55, 'isGood': True, 'src': 'stimuli/faces/face_055_blue.png'}, {'color': 'red', 'id': 69, 'isGood': True, 'src': 'stimuli/faces/face_069_red.png'}, {'color': 'red', 'id': 27, 'isGood': False, 'src': 'stimuli/faces/face_027_red.png'}, {'color': 'blue', 'id': 19, 'isGood': False, 'src': 'stimuli/faces/face_019_blue.png'}]",FALSE,red,1,1,1,178,choice,96373,4,4,12,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,97389,,,13,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,90,TRUE,equal,TRUE,"[{'color': 'red', 'id': 44, 'isGood': True, 'src': 'stimuli/faces/face_044_red.png'}, {'color': 'blue', 'id': 90, 'isGood': True, 'src': 'stimuli/faces/face_090_blue.png'}, {'color': 'red', 'id': 36, 'isGood': True, 'src': 'stimuli/faces/face_036_red.png'}, {'color': 'red', 'id': 60, 'isGood': True, 'src': 'stimuli/faces/face_060_red.png'}]",FALSE,red,1,1,1,150,choice,97540,5,5,14,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,98555,,,15,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,44,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 40, 'isGood': True, 'src': 'stimuli/faces/face_040_blue.png'}, {'color': 'red', 'id': 44, 'isGood': True, 'src': 'stimuli/faces/face_044_red.png'}, {'color': 'red', 'id': 58, 'isGood': True, 'src': 'stimuli/faces/face_058_red.png'}, {'color': 'blue', 'id': 24, 'isGood': False, 'src': 'stimuli/faces/face_024_blue.png'}]",FALSE,red,1,1,1,115,choice,98670,6,6,16,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,99677,,,17,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,69,TRUE,equal,TRUE,"[{'color': 'red', 'id': 0, 'isGood': True, 'src': 'stimuli/faces/face_000_red.png'}, {'color': 'red', 'id': 69, 'isGood': True, 'src': 'stimuli/faces/face_069_red.png'}, {'color': 'red', 'id': 67, 'isGood': True, 'src': 'stimuli/faces/face_067_red.png'}, {'color': 'blue', 'id': 40, 'isGood': True, 'src': 'stimuli/faces/face_040_blue.png'}]",FALSE,red,1,1,1,137,choice,99815,7,7,18,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,100828,,,19,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,69,TRUE,equal,TRUE,"[{'color': 'red', 'id': 47, 'isGood': False, 'src': 'stimuli/faces/face_047_red.png'}, {'color': 'red', 'id': 69, 'isGood': True, 'src': 'stimuli/faces/face_069_red.png'}, {'color': 'blue', 'id': 37, 'isGood': True, 'src': 'stimuli/faces/face_037_blue.png'}, {'color': 'red', 'id': 0, 'isGood': True, 'src': 'stimuli/faces/face_000_red.png'}]",FALSE,red,1,1,1,120,choice,100948,8,8,20,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,101963,,,21,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,40,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 2, 'isGood': True, 'src': 'stimuli/faces/face_002_blue.png'}, {'color': 'blue', 'id': 40, 'isGood': True, 'src': 'stimuli/faces/face_040_blue.png'}, {'color': 'red', 'id': 27, 'isGood': False, 'src': 'stimuli/faces/face_027_red.png'}, {'color': 'red', 'id': 83, 'isGood': False, 'src': 'stimuli/faces/face_083_red.png'}]",FALSE,red,1,1,1,162,choice,102126,9,9,22,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,103133,,,23,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,20,TRUE,equal,TRUE,"[{'color': 'red', 'id': 83, 'isGood': False, 'src': 'stimuli/faces/face_083_red.png'}, {'color': 'blue', 'id': 20, 'isGood': True, 'src': 'stimuli/faces/face_020_blue.png'}, {'color': 'blue', 'id': 55, 'isGood': True, 'src': 'stimuli/faces/face_055_blue.png'}, {'color': 'blue', 'id': 85, 'isGood': True, 'src': 'stimuli/faces/face_085_blue.png'}]",FALSE,red,1,1,1,175,choice,103309,10,10,24,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,104320,,,25,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,44,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 85, 'isGood': True, 'src': 'stimuli/faces/face_085_blue.png'}, {'color': 'red', 'id': 44, 'isGood': True, 'src': 'stimuli/faces/face_044_red.png'}, {'color': 'blue', 'id': 39, 'isGood': True, 'src': 'stimuli/faces/face_039_blue.png'}, {'color': 'red', 'id': 58, 'isGood': True, 'src': 'stimuli/faces/face_058_red.png'}]",FALSE,red,1,1,1,127,choice,104448,11,11,26,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,105457,,,27,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,20,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 90, 'isGood': True, 'src': 'stimuli/faces/face_090_blue.png'}, {'color': 'blue', 'id': 20, 'isGood': True, 'src': 'stimuli/faces/face_020_blue.png'}, {'color': 'red', 'id': 58, 'isGood': True, 'src': 'stimuli/faces/face_058_red.png'}, {'color': 'red', 'id': 36, 'isGood': True, 'src': 'stimuli/faces/face_036_red.png'}]",FALSE,red,1,1,1,137,choice,105594,12,12,28,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,106596,,,29,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,44,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 20, 'isGood': True, 'src': 'stimuli/faces/face_020_blue.png'}, {'color': 'red', 'id': 44, 'isGood': True, 'src': 'stimuli/faces/face_044_red.png'}, {'color': 'blue', 'id': 85, 'isGood': True, 'src': 'stimuli/faces/face_085_blue.png'}, {'color': 'blue', 'id': 39, 'isGood': True, 'src': 'stimuli/faces/face_039_blue.png'}]",FALSE,red,1,1,1,105,choice,106702,13,13,30,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,107704,,,31,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,69,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 90, 'isGood': True, 'src': 'stimuli/faces/face_090_blue.png'}, {'color': 'red', 'id': 69, 'isGood': True, 'src': 'stimuli/faces/face_069_red.png'}, {'color': 'red', 'id': 27, 'isGood': False, 'src': 'stimuli/faces/face_027_red.png'}, {'color': 'red', 'id': 60, 'isGood': True, 'src': 'stimuli/faces/face_060_red.png'}]",FALSE,red,1,1,1,214,choice,107918,14,14,32,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,108920,,,33,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,90,TRUE,equal,TRUE,"[{'color': 'red', 'id': 69, 'isGood': True, 'src': 'stimuli/faces/face_069_red.png'}, {'color': 'blue', 'id': 90, 'isGood': True, 'src': 'stimuli/faces/face_090_blue.png'}, {'color': 'red', 'id': 44, 'isGood': True, 'src': 'stimuli/faces/face_044_red.png'}, {'color': 'red', 'id': 27, 'isGood': False, 'src': 'stimuli/faces/face_027_red.png'}]",FALSE,red,1,1,1,91,choice,109011,15,15,34,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,110027,,,35,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,0,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 90, 'isGood': True, 'src': 'stimuli/faces/face_090_blue.png'}, {'color': 'red', 'id': 0, 'isGood': True, 'src': 'stimuli/faces/face_000_red.png'}, {'color': 'red', 'id': 27, 'isGood': False, 'src': 'stimuli/faces/face_027_red.png'}, {'color': 'blue', 'id': 39, 'isGood': True, 'src': 'stimuli/faces/face_039_blue.png'}]",FALSE,red,1,1,1,204,choice,110231,16,16,36,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,111242,,,37,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,20,TRUE,equal,TRUE,"[{'color': 'red', 'id': 69, 'isGood': True, 'src': 'stimuli/faces/face_069_red.png'}, {'color': 'blue', 'id': 20, 'isGood': True, 'src': 'stimuli/faces/face_020_blue.png'}, {'color': 'blue', 'id': 85, 'isGood': True, 'src': 'stimuli/faces/face_085_blue.png'}, {'color': 'red', 'id': 0, 'isGood': True, 'src': 'stimuli/faces/face_000_red.png'}]",FALSE,red,1,1,1,219,choice,111461,17,17,38,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,112468,,,39,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,blue,55,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 40, 'isGood': True, 'src': 'stimuli/faces/face_040_blue.png'}, {'color': 'blue', 'id': 55, 'isGood': True, 'src': 'stimuli/faces/face_055_blue.png'}, {'color': 'red', 'id': 58, 'isGood': True, 'src': 'stimuli/faces/face_058_red.png'}, {'color': 'blue', 'id': 20, 'isGood': True, 'src': 'stimuli/faces/face_020_blue.png'}]",FALSE,red,1,1,1,176,choice,112645,18,18,40,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,113650,,,41,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "
+P1770483825689,1,red,60,TRUE,equal,TRUE,"[{'color': 'blue', 'id': 20, 'isGood': True, 'src': 'stimuli/faces/face_020_blue.png'}, {'color': 'red', 'id': 60, 'isGood': True, 'src': 'stimuli/faces/face_060_red.png'}, {'color': 'red', 'id': 67, 'isGood': True, 'src': 'stimuli/faces/face_067_red.png'}, {'color': 'red', 'id': 69, 'isGood': True, 'src': 'stimuli/faces/face_069_red.png'}]",FALSE,red,-5,1,1,104,choice,113755,13,19,42,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,114757,,,43,html-keyboard-response,2.1.0,"
+                <div class=""feedback negative"">
+                    -5
+                </div>
+            "
+P1770483825689,1,blue,24,FALSE,equal,TRUE,"[{'color': 'blue', 'id': 19, 'isGood': False, 'src': 'stimuli/faces/face_019_blue.png'}, {'color': 'blue', 'id': 24, 'isGood': False, 'src': 'stimuli/faces/face_024_blue.png'}, {'color': 'red', 'id': 44, 'isGood': True, 'src': 'stimuli/faces/face_044_red.png'}, {'color': 'red', 'id': 58, 'isGood': True, 'src': 'stimuli/faces/face_058_red.png'}]",FALSE,red,1,1,1,115,choice,114873,14,20,44,image-multi-choice,,
+P1770483825689,,,,,equal,TRUE,,FALSE,red,,1,,,feedback,115877,,,45,html-keyboard-response,2.1.0,"
+                <div class=""feedback positive"">
+                    +1
+                </div>
+            "

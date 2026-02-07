@@ -1,0 +1,281 @@
+participant_id,condition,debug_mode,face_color,face_id,face_is_good,informed,majority_group,phase,plugin_version,rating,response,rt,stimulus,task,time_elapsed,trial_index,trial_type,confidence_label,confidence_level,previous_goodbad_rating
+P1770483825689,equal,TRUE,red,83,FALSE,FALSE,red,3,2.1.0,good,1,13179,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_083_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,142493,56,html-button-response,,,
+P1770483825689,equal,TRUE,red,83,FALSE,FALSE,red,3,2.1.0,,3,1666,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_083_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,144160,59,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,67,TRUE,FALSE,red,3,2.1.0,good,1,238,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_067_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,144399,60,html-button-response,,,
+P1770483825689,equal,TRUE,red,67,TRUE,FALSE,red,3,2.1.0,,3,140,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_067_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,144540,63,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,2,TRUE,FALSE,red,3,2.1.0,good,1,149,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_002_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,144690,64,html-button-response,,,
+P1770483825689,equal,TRUE,blue,2,TRUE,FALSE,red,3,2.1.0,,3,144,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_002_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,144835,67,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,24,FALSE,FALSE,red,3,2.1.0,good,1,133,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_024_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,144969,68,html-button-response,,,
+P1770483825689,equal,TRUE,blue,24,FALSE,FALSE,red,3,2.1.0,,3,131,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_024_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,145101,71,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,58,TRUE,FALSE,red,3,2.1.0,good,1,141,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_058_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,145242,72,html-button-response,,,
+P1770483825689,equal,TRUE,red,58,TRUE,FALSE,red,3,2.1.0,,3,140,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_058_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,145382,75,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,20,TRUE,FALSE,red,3,2.1.0,good,1,139,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_020_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,145522,76,html-button-response,,,
+P1770483825689,equal,TRUE,blue,20,TRUE,FALSE,red,3,2.1.0,,3,146,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_020_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,145669,79,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,40,TRUE,FALSE,red,3,2.1.0,good,1,155,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_040_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,145824,80,html-button-response,,,
+P1770483825689,equal,TRUE,blue,40,TRUE,FALSE,red,3,2.1.0,,3,148,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_040_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,145973,83,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,0,TRUE,FALSE,red,3,2.1.0,good,1,155,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_000_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,146128,84,html-button-response,,,
+P1770483825689,equal,TRUE,red,0,TRUE,FALSE,red,3,2.1.0,,3,152,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_000_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,146281,87,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,44,TRUE,FALSE,red,3,2.1.0,good,1,150,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_044_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,146432,88,html-button-response,,,
+P1770483825689,equal,TRUE,red,44,TRUE,FALSE,red,3,2.1.0,,3,153,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_044_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,146585,91,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,55,TRUE,FALSE,red,3,2.1.0,good,1,150,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_055_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,146736,92,html-button-response,,,
+P1770483825689,equal,TRUE,blue,55,TRUE,FALSE,red,3,2.1.0,,3,153,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_055_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,146890,95,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,85,TRUE,FALSE,red,3,2.1.0,good,1,155,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_085_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,147045,96,html-button-response,,,
+P1770483825689,equal,TRUE,blue,85,TRUE,FALSE,red,3,2.1.0,,3,150,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_085_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,147196,99,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,37,TRUE,FALSE,red,3,2.1.0,good,1,158,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_037_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,147355,100,html-button-response,,,
+P1770483825689,equal,TRUE,blue,37,TRUE,FALSE,red,3,2.1.0,,3,152,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_037_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,147508,103,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,36,TRUE,FALSE,red,3,2.1.0,good,1,155,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_036_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,147664,104,html-button-response,,,
+P1770483825689,equal,TRUE,red,36,TRUE,FALSE,red,3,2.1.0,,3,148,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_036_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,147813,107,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,39,TRUE,FALSE,red,3,2.1.0,good,1,153,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_039_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,147967,108,html-button-response,,,
+P1770483825689,equal,TRUE,blue,39,TRUE,FALSE,red,3,2.1.0,,3,153,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_039_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,148120,111,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,19,FALSE,FALSE,red,3,2.1.0,good,1,159,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_019_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,148280,112,html-button-response,,,
+P1770483825689,equal,TRUE,blue,19,FALSE,FALSE,red,3,2.1.0,,3,152,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_019_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,148432,115,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,27,FALSE,FALSE,red,3,2.1.0,good,1,147,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_027_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,148580,116,html-button-response,,,
+P1770483825689,equal,TRUE,red,27,FALSE,FALSE,red,3,2.1.0,,3,142,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_027_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,148723,119,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,69,TRUE,FALSE,red,3,2.1.0,good,1,155,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_069_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,148878,120,html-button-response,,,
+P1770483825689,equal,TRUE,red,69,TRUE,FALSE,red,3,2.1.0,,3,154,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_069_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,149033,123,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,blue,90,TRUE,FALSE,red,3,2.1.0,good,1,310,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_090_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,149343,124,html-button-response,,,
+P1770483825689,equal,TRUE,blue,90,TRUE,FALSE,red,3,2.1.0,,3,262,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_090_blue.png""
+                         style=""width: 300px; height: 300px; border: 10px solid blue; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,149605,127,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,47,FALSE,FALSE,red,3,2.1.0,good,1,224,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_047_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,149830,128,html-button-response,,,
+P1770483825689,equal,TRUE,red,47,FALSE,FALSE,red,3,2.1.0,,3,262,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_047_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,150093,131,html-button-response,Slightly confident,4,good
+P1770483825689,equal,TRUE,red,60,TRUE,FALSE,red,3,2.1.0,good,1,241,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_060_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">Do you think this person is good or bad?</h3>
+                </div>
+            ",phase3_goodbad,150335,132,html-button-response,,,
+P1770483825689,equal,TRUE,red,60,TRUE,FALSE,red,3,2.1.0,,3,275,"
+                <div style=""text-align: center;"">
+                    <img src=""stimuli/faces/face_060_red.png""
+                         style=""width: 300px; height: 300px; border: 10px solid red; border-radius: 10px; margin-bottom: 30px;"">
+                    <h3 style=""margin-top: 20px;"">How confident are you that your choice is correct?</h3>
+                </div>
+            ",phase3_confidence,150611,135,html-button-response,Slightly confident,4,good

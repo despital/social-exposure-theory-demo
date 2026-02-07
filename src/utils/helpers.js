@@ -94,8 +94,15 @@ export function generateTrials(faces, urlParams, jsPsych) {
         const redFaces = faces.filter(f => f.color === 'red');
         const blueFaces = faces.filter(f => f.color === 'blue');
 
-        const selectedRed = jsPsych.randomization.sampleWithoutReplacement(redFaces, redCount);
-        const selectedBlue = jsPsych.randomization.sampleWithoutReplacement(blueFaces, blueCount);
+        // Use sampleWithReplacement if we need more faces than available
+        // This allows faces to repeat within a block in majority/minority conditions
+        const selectedRed = redCount <= redFaces.length
+            ? jsPsych.randomization.sampleWithoutReplacement(redFaces, redCount)
+            : jsPsych.randomization.sampleWithReplacement(redFaces, redCount);
+
+        const selectedBlue = blueCount <= blueFaces.length
+            ? jsPsych.randomization.sampleWithoutReplacement(blueFaces, blueCount)
+            : jsPsych.randomization.sampleWithReplacement(blueFaces, blueCount);
 
         const blockFaces = [...selectedRed, ...selectedBlue];
         const shuffledBlockFaces = jsPsych.randomization.shuffle(blockFaces);

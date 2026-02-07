@@ -26,6 +26,14 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 import { CONFIG } from "./utils/config.js";
 import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generatePhase2Trials, generatePhase3Trials } from "./utils/helpers.js";
 
+// Import country and language data
+import countries from 'i18n-iso-countries';
+import en from 'i18n-iso-countries/langs/en.json';
+import ISO6391 from 'iso-639-1';
+
+// Initialize country data
+countries.registerLocale(en);
+
 /**
  * This function will be executed by jsPsych Builder and is expected to run the jsPsych experiment
  */
@@ -227,6 +235,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         timeline.push(demographicsIntro);
 
         // Demographics survey - Single multi-page survey
+        // Generate comprehensive country and language lists
+        const allCountries = [...Object.values(countries.getNames('en')).sort(), 'Prefer not to say'];
+        const allLanguages = ISO6391.getAllNames().sort();
+
         const demographicsSurvey = {
             type: survey,
             survey_json: {
@@ -334,11 +346,12 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 ]
                             },
                             {
-                                type: 'text',
+                                type: 'dropdown',
                                 title: 'What is your primary language?',
                                 name: 'primary_language',
                                 isRequired: true,
-                                placeholder: 'e.g., English, Spanish, Mandarin, etc.'
+                                choices: allLanguages,
+                                placeholder: 'Select or search for your language...'
                             },
                             {
                                 type: 'radiogroup',
@@ -359,24 +372,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 title: 'Where are you currently located?',
                                 name: 'geographic_location',
                                 isRequired: true,
-                                choices: [
-                                    'United States',
-                                    'Canada',
-                                    'United Kingdom',
-                                    'Australia',
-                                    'India',
-                                    'Germany',
-                                    'France',
-                                    'Spain',
-                                    'Italy',
-                                    'Netherlands',
-                                    'Brazil',
-                                    'Mexico',
-                                    'China',
-                                    'Japan',
-                                    'South Korea',
-                                    'Other'
-                                ]
+                                choices: allCountries,
+                                placeholder: 'Select or search for your country...'
                             }
                         ]
                     },
@@ -700,8 +697,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             stimulus: function() {
                 return `
                     <h2>Phase 2 Complete!</h2>
-                    <p>Your Phase 2 score: <strong>${phase2Score}</strong></p>
-                    <p>Your total combined score: <strong>${totalScore + phase2Score}</strong></p>
                     <p>Thank you for completing both phases!</p>
                     <p>Press any key to continue.</p>
                 `;

@@ -1,0 +1,2 @@
+participant_id,internal_id,prolific_pid,study_id,session_id,condition,majority_group,informed,timestamp,debug_mode,phase1_score,phase2_score,total_score,phase1_trials_count,phase2_trials_count,phase3_trials_count
+P1770483825689,internal_3958394054,P1770483825689,,,equal,red,FALSE,2026-02-07T17:06:30.647Z,TRUE,14,-1,13,40,5,40
