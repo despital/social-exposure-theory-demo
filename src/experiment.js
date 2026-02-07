@@ -100,7 +100,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     }
 
     // Generate faces and assign good/bad
-    let faces = generateFaces();
+    let faces = generateFaces(jsPsych);
     faces = assignGoodBad(faces, jsPsych);
 
     // If debug mode, use only a subset of faces for faster testing
@@ -485,6 +485,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         data: function() {
             return {
                 task: 'choice',
+                phase: 1,
                 block: jsPsych.evaluateTimelineVariable('block'),
                 trial_in_block: jsPsych.evaluateTimelineVariable('trialInBlock')
             };
@@ -524,7 +525,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         choices: "NO_KEYS",  // Disable keyboard responses
         trial_duration: 1000,  // Auto-advance after 1 second
         data: {
-            task: 'feedback'
+            task: 'feedback',
+            phase: 1
         },
         on_finish: function() {
             // Phase 1 takes up 60% of the progress bar (0.0 to 0.6)

@@ -6,27 +6,36 @@ import { CONFIG } from './config.js';
 
 /**
  * Generate face objects with IDs and colors
+ * Assign each face with a unique ID and then assign each face to either blue or red groups
  */
-export function generateFaces() {
+export function generateFaces(jsPsych) {
     const faces = [];
 
-    // Generate red faces (IDs: 0-49)
-    for (let i = 0; i < CONFIG.RED_FACES; i++) {
-        faces.push({
-            id: i,
-            color: 'red',
-            imagePath: `stimuli/faces/face_${String(i).padStart(3, '0')}_red.png`
-        });
-    }
+    // Create array of 100 unique face IDs (0-99)
+    const faceIds = Array.from({length: CONFIG.TOTAL_FACES}, (_, i) => i);
 
-    // Generate blue faces (IDs: 50-99)
-    for (let i = 0; i < CONFIG.BLUE_FACES; i++) {
+    // Shuffle and split into two groups (50 red, 50 blue)
+    const shuffledIds = jsPsych.randomization.shuffle(faceIds);
+    const redIds = shuffledIds.slice(0, CONFIG.TOTAL_FACES / 2);
+    const blueIds = shuffledIds.slice(CONFIG.TOTAL_FACES / 2);
+
+    // Create red faces
+    redIds.forEach(id => {
         faces.push({
-            id: CONFIG.RED_FACES + i,
-            color: 'blue',
-            imagePath: `stimuli/faces/face_${String(i).padStart(3, '0')}_blue.png`
+            id: id,
+            color: 'red',
+            imagePath: `stimuli/faces/face_${String(id).padStart(3, '0')}_red.png`
         });
-    }
+    });
+
+    // Create blue faces
+    blueIds.forEach(id => {
+        faces.push({
+            id: id,
+            color: 'blue',
+            imagePath: `stimuli/faces/face_${String(id).padStart(3, '0')}_blue.png`
+        });
+    });
 
     return faces;
 }
