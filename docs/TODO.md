@@ -1,114 +1,86 @@
-# TODO - Social Exposure Theory Experiment
+# TODO
 
-### 1. Add Consent Form, Survey, and Debriefing
-**Status:** Completed
-
-### 2. Firebase Setup and Testing
-**Status:** Not started (currently using demo credentials)
-
-**Tasks:**
-- [ ] Create new Firebase project for this experiment
-- [ ] Set up Realtime Database
-- [ ] Configure authentication (anonymous sign-in)
-- [ ] Update Firebase credentials in `src/utils/config.js`
-- [ ] Test data saving with sample run
-- [ ] Verify data structure in Firebase console
-- [ ] Set `DISABLE_DATA_SAVING: false` for production
-- [ ] Add error handling for Firebase failures
-- [ ] Optional: Add local backup if Firebase fails
-
-**Security considerations:**
-- [ ] Set up Firebase security rules
-- [ ] Ensure participants can only write to their own data
-- [ ] Restrict read access
-
-
----
-### 4. Stimuli Integration
-**Status:** Cancelled
-
-**Tasks:**
-- [ ] Test image loading times
-- [ ] Add preloading if needed for performance
+**Last Updated:** 2026-02-07
 
 ---
 
-### 5. Testing & Validation
+## Pre-Launch (Priority)
 
-**Tasks:**
-- [ ] Test all 6 condition URLs
-- [ ] Verify correct exposure ratios (50/50 and 80/20)
-- [ ] Verify stratified assignment (exactly 80/20 good/bad per group)
-- [ ] Check data structure and completeness
-- [ ] Test with actual face images
+### Firebase Production Setup
+- [ ] Verify Firebase Security Rules are active
+- [ ] Set `DISABLE_DATA_SAVING: false` in `config.js`
+- [ ] Test data saving with pilot participants
+- [ ] Set up data backup/monitoring schedule
+
+### Testing & Validation
+- [ ] Test all 6 experimental conditions
+- [ ] Verify exposure ratios (50/50 and 80/20)
 - [ ] Cross-browser testing (Chrome, Firefox, Safari)
-- [ ] Mobile device testing (if applicable)
+- [ ] Mobile device compatibility check
 - [ ] Prolific integration test
 
----
-
-### 6. Additional Features
-
-**Nice-to-have improvements:**
-- [x] Add fullscreen mode (like in demo)
-- [ ] Add attention checks periodically
-- [ ] Add break screens every N trials
-- [ ] Add practice trials before main experiment
-- [ ] Improve feedback animation
-- [ ] Add sound effects (optional)
-- [ ] Add loading screen while images preload
-- [ ] Better mobile responsiveness
-- [ ] Add experiment timer/duration estimate
-
-**Estimated time:** Variable based on priorities
-
----
-### 7. Production Deployment
-
-**Tasks:**
-- [x] Run production build: `npm run build`
-- [x] Test production build locally
-- [x] Upload `dist/` to GitHub Pages
-- [ ] Generate final condition URLs
-- [ ] Document URLs for research team
-- [ ] Set up Prolific study
+### Study Launch
+- [ ] Generate final condition URLs for Prolific
+- [ ] Document URLs and conditions for team
 - [ ] Pilot test with 5-10 participants
+- [ ] Review pilot data for issues
+- [ ] Launch full data collection
 
 ---
 
-## Backlog / Future Considerations
+## Future Enhancements (Optional)
 
-- [ ] Add data analysis scripts (Python/R)
-- [ ] Create data visualization dashboard
-- [ ] Document data structure for analysis
-- [ ] Add export to CSV functionality
-- [ ] Create experimenter dashboard for monitoring
-- [ ] Add randomization check tools
-- [ ] Performance optimization for large datasets
+### Experiment Features
+- [ ] Attention checks
+- [ ] Practice trials before Phase 1
+- [ ] Image preloading optimization
+- [ ] Mobile responsiveness improvements
+
+### Data & Analysis
+- [ ] Data analysis scripts (Python/R)
+- [ ] Data visualization dashboard
+- [ ] Experimenter monitoring dashboard
+- [ ] Automated data quality checks
 
 ---
 
 ## Completed ✅
 
-- [x] Project setup with jsPsych Builder
+**Core Experiment:**
+- [x] Phase 1: Social Learning (300 trials)
+- [x] Phase 2: Partner Choice (25 trials)
+- [x] Phase 3: Post-Task Rating (~200 trials)
 - [x] Custom image-multi-choice plugin
-- [x] Configuration system with hyperparameters
-- [x] Block design trial generation
-- [x] Stratified good/bad assignment
-- [x] URL parameter condition assignment
-- [x] Feedback and scoring system
-- [x] Progress bar
-- [x] Firebase integration (basic structure)
-- [x] Git repository setup
+- [x] Block design and stratified assignment
+- [x] Progress bar across all phases
+- [x] Break screen between Phase 1 & 2
+
+**Data Collection:**
+- [x] Firebase integration
+- [x] Condition assignment via URL
+- [x] CSV export scripts (Python & R)
+- [x] Comprehensive data structure
+
+**Survey Components:**
+- [x] Informed consent form
+- [x] 4-page demographics survey
+- [x] Technical check survey
+- [x] User feedback survey
+- [x] Debriefing screen
+
+**Development Tools:**
+- [x] Debug mode with reduced trials
+- [x] Section jumping system
+- [x] Simulation mode integration
 - [x] Webpack build system
-- [x] Development documentation
-- [x] Added consent screen
-- [x] Obtained and modify FaceGen stimuli
-- [x] Add post-experiment debriefing screen
-- [x] Add post-questionnaire for feedback
-- [x] Add `DEBUG_MODE` flag to `config.js`
-- [x] Activate via URL parameter: `?debug=true`
 
----
+**Stimuli:**
+- [x] 100 FaceGen faces with colored backgrounds
+- [x] Image generation scripts
+- [x] Deployment to GitHub Pages
 
-**Last Updated:** 2026-02-05
+**Documentation:**
+- [x] Internal documentation (INTERNAL_DOCS.md)
+- [x] Public-facing README
+- [x] Data export guides
+- [x] Configuration documentation
