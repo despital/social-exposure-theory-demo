@@ -68,9 +68,11 @@ flatten_participants <- function(firebase_data) {
       prolific_pid = metadata$prolific_pid %||% NA,
       study_id = metadata$study_id %||% NA,
       session_id = metadata$session_id %||% NA,
+      condition_code = metadata$condition_code %||% NA,
       condition = metadata$condition %||% NA,
       majority_group = metadata$majority_group %||% NA,
-      informed = metadata$informed %||% NA,
+      p1_type = metadata$p1_type %||% NA,
+      p2_exposure = metadata$p2_exposure %||% NA,
       timestamp = metadata$timestamp %||% NA,
       debug_mode = metadata$debug_mode %||% NA,
       # Summary scores

@@ -135,9 +135,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     let phase2Count = 0;
 
     console.log('DEMO Experiment initialized:', {
+        conditionCode: urlParams.conditionCode,
         condition: urlParams.condition,
         majorityGroup: urlParams.majorityGroup,
-        informed: urlParams.informed,
+        p1Type: urlParams.p1Type,
+        p2Exposure: urlParams.p2Exposure,
         phase1Trials: phase1Trials.length,
         phase2Trials: phase2Trials.length
     });
@@ -167,33 +169,31 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // PHASE 1: LEARNING TASK
     // ========================================================================
 
-    // Phase 1 Instructions
+    // Phase 1 Instructions (differ between experimental and control)
+    const phase1InstructionText = urlParams.p1Type === 'control'
+        ? `<div style="max-width: 800px; margin: auto; text-align: left;">
+            <h2>Phase 1: Learning Task</h2>
+            <p>You will see <strong>4 faces</strong> on each trial.</p>
+            <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
+            <p>After your choice, the reward values for <strong>all four people</strong> will be revealed.</p>
+            <p>Each person can give you either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
+            <p><strong>Your goal is to maximize your total score.</strong></p>
+            <p><strong>Demo:</strong> You will complete 5 trials.</p>
+            <p>Press any key to start.</p>
+        </div>`
+        : `<div style="max-width: 800px; margin: auto; text-align: left;">
+            <h2>Phase 1: Learning Task</h2>
+            <p>You will see <strong>4 faces</strong> on each trial.</p>
+            <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
+            <p>After your choice, you will receive either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
+            <p><strong>Your goal is to maximize your total score.</strong></p>
+            <p><strong>Demo:</strong> You will complete 5 trials.</p>
+            <p>Press any key to start.</p>
+        </div>`;
+
     const phase1Instructions = {
         type: HtmlKeyboardResponsePlugin,
-        stimulus: function() {
-            let text = `
-                <div style="max-width: 800px; margin: auto; text-align: left;">
-                    <h2>Phase 1: Learning Task</h2>
-                    <p>You will see <strong>4 faces</strong> on each trial.</p>
-                    <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
-                    <p>After your choice, you will receive either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
-                    <p><strong>Your goal is to maximize your total score.</strong></p>
-            `;
-
-            if (urlParams.informed) {
-                text += `
-                    <p><strong>Important information:</strong> The faces have colored backgrounds (red or blue).
-                    Both groups have similar proportions of people who tend to give rewards vs punishments.</p>
-                `;
-            }
-
-            text += `
-                    <p><strong>Demo:</strong> You will complete 5 trials.</p>
-                    <p>Press any key to start.</p>
-                </div>
-            `;
-            return text;
-        }
+        stimulus: phase1InstructionText
     };
     timeline.push(phase1Instructions);
 
@@ -242,6 +242,17 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.outcome = outcome;
             data.phase1_score = phase1Score;
 
+            // Control condition: compute and store outcomes for all 4 faces
+            if (urlParams.p1Type === 'control') {
+                data.all_outcomes = trialFaces.map(face => ({
+                    id: face.id,
+                    color: face.color,
+                    isGood: face.isGood,
+                    outcome: face === chosenFace ? outcome : getOutcome(face),
+                    imagePath: face.imagePath
+                }));
+            }
+
             // Update progress
             const progress = phase1Count / DEMO_CONFIG.PHASE1_TRIALS;
             jsPsych.progressBar.progress = progress * 0.4; // Phase 1 is 40% of total
@@ -254,16 +265,37 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: function() {
             const lastTrial = jsPsych.data.get().last(1).values()[0];
             const outcome = lastTrial.outcome;
-            const feedbackClass = outcome > 0 ? 'positive' : 'negative';
-            const feedbackText = outcome > 0 ? `+${outcome}` : outcome;
 
-            return `
-                <div class="score-display">Phase 1 Score: ${phase1Score}</div>
-                <div class="feedback ${feedbackClass}">
-                    ${feedbackText}
-                </div>
-                <p>Press any key to continue</p>
-            `;
+            if (urlParams.p1Type === 'control') {
+                // Control: show all 4 faces with their outcomes
+                const allOutcomes = lastTrial.all_outcomes;
+                const chosenIndex = lastTrial.response;
+                let html = `<div class="score-display">Phase 1 Score: ${phase1Score}</div>`;
+                html += '<div class="control-feedback-grid">';
+                allOutcomes.forEach((face, i) => {
+                    const isChosen = i === chosenIndex;
+                    const feedbackClass = face.outcome > 0 ? 'positive' : 'negative';
+                    html += `
+                        <div class="control-feedback-cell ${isChosen ? 'chosen' : ''}">
+                            <div class="feedback-value ${feedbackClass}">
+                                ${face.outcome > 0 ? '+' + face.outcome : face.outcome}
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                return html;
+            } else {
+                // Experimental: single outcome
+                const feedbackClass = outcome > 0 ? 'positive' : 'negative';
+                const feedbackText = outcome > 0 ? `+${outcome}` : outcome;
+                return `
+                    <div class="score-display">Phase 1 Score: ${phase1Score}</div>
+                    <div class="feedback ${feedbackClass}">
+                        ${feedbackText}
+                    </div>
+                    <p>Press any key to continue</p>
+                `;
+            }
         },
         trial_duration: 1500,
         data: {
@@ -408,7 +440,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 <p>Phase 2 score: <strong>${phase2Score}</strong> (${DEMO_CONFIG.PHASE2_TRIALS} trials)</p>
                 <p>Total combined score: <strong>${phase1Score + phase2Score}</strong></p>
                 <hr>
-                <p style="color: #666;">Condition: ${urlParams.condition}, Majority: ${urlParams.majorityGroup}, Informed: ${urlParams.informed}</p>
+                <p style="color: #666;">Code: ${urlParams.conditionCode} | Condition: ${urlParams.condition}, Majority: ${urlParams.majorityGroup}, P1 Type: ${urlParams.p1Type}, P2 Exposure: ${urlParams.p2Exposure}</p>
                 <p>Press any key to view data.</p>
             `;
         },

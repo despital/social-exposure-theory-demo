@@ -77,9 +77,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         participant_id: urlParams.participantId,
         study_id: urlParams.studyId,
         session_id: urlParams.sessionId,
+        condition_code: urlParams.conditionCode,
         condition: urlParams.condition,
         majority_group: urlParams.majorityGroup,
-        informed: urlParams.informed,
+        p1_type: urlParams.p1Type,
+        p2_exposure: urlParams.p2Exposure,
         debug_mode: debugMode
     });
 
@@ -140,9 +142,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     let phase2TrialCount = 0;
 
     console.log('Experiment initialized:', {
+        conditionCode: urlParams.conditionCode,
         condition: urlParams.condition,
         majorityGroup: urlParams.majorityGroup,
-        informed: urlParams.informed,
+        p1Type: urlParams.p1Type,
+        p2Exposure: urlParams.p2Exposure,
         participantId: urlParams.participantId,
         phase1Trials: trials.length,
         phase2Trials: phase2Trials.length
@@ -418,32 +422,29 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // ========================================================================
 
     if (shouldShowSection('phase1')) {
-        // Instructions
+        // Instructions (differ between experimental and control)
+        const instructionText = urlParams.p1Type === 'control'
+            ? `<div style="max-width: 800px; margin: auto; text-align: left;">
+                <h2>Instructions</h2>
+                <p>In this experiment, you will see <strong>4 faces</strong> on each trial.</p>
+                <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
+                <p>After your choice, the reward values for <strong>all four people</strong> will be revealed.</p>
+                <p>Each person can give you either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
+                <p><strong>Your goal is to maximize your total score.</strong></p>
+                <p>Press any key to start the experiment.</p>
+            </div>`
+            : `<div style="max-width: 800px; margin: auto; text-align: left;">
+                <h2>Instructions</h2>
+                <p>In this experiment, you will see <strong>4 faces</strong> on each trial.</p>
+                <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
+                <p>After your choice, you will receive either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
+                <p><strong>Your goal is to maximize your total score.</strong></p>
+                <p>Press any key to start the experiment.</p>
+            </div>`;
+
         const instructions = {
         type: HtmlKeyboardResponsePlugin,
-        stimulus: function() {
-            let text = `
-                <div style="max-width: 800px; margin: auto; text-align: left;">
-                    <h2>Instructions</h2>
-                    <p>In this experiment, you will see <strong>4 faces</strong> on each trial.</p>
-                    <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
-                    <p>After your choice, you will receive either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
-                    <p><strong>Your goal is to maximize your total score.</strong></p>
-            `;
-
-            if (urlParams.informed) {
-                text += `
-                    <p><strong>Important information:</strong> The faces have colored backgrounds (red or blue).
-                    Both groups have similar proportions of people who tend to give rewards vs punishments.</p>
-                `;
-            }
-
-            text += `
-                    <p>Press any key to start the experiment.</p>
-                </div>
-            `;
-            return text;
-        },
+        stimulus: instructionText,
         on_start: function() {
             jsPsych.progressBar.progress = 0;
         }
@@ -495,6 +496,17 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.outcome = outcome;
             data.total_score = totalScore;
             // RT is automatically recorded by the plugin in data.rt
+
+            // Control condition: compute and store outcomes for all 4 faces
+            if (urlParams.p1Type === 'control') {
+                data.all_outcomes = trialFaces.map(face => ({
+                    id: face.id,
+                    color: face.color,
+                    isGood: face.isGood,
+                    outcome: face === chosenFace ? outcome : getOutcome(face),
+                    imagePath: face.imagePath
+                }));
+            }
         }
     };
 
@@ -504,14 +516,34 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: function() {
             const lastTrial = jsPsych.data.get().last(1).values()[0];
             const outcome = lastTrial.outcome;
-            const feedbackClass = outcome > 0 ? 'positive' : 'negative';
-            const feedbackText = outcome > 0 ? `+${outcome}` : outcome;
 
-            return `
-                <div class="feedback ${feedbackClass}">
-                    ${feedbackText}
-                </div>
-            `;
+            if (urlParams.p1Type === 'control') {
+                // Control: show all 4 faces with their outcomes
+                const allOutcomes = lastTrial.all_outcomes;
+                const chosenIndex = lastTrial.response;
+                let html = '<div class="control-feedback-grid">';
+                allOutcomes.forEach((face, i) => {
+                    const isChosen = i === chosenIndex;
+                    const feedbackClass = face.outcome > 0 ? 'positive' : 'negative';
+                    html += `
+                        <div class="control-feedback-cell ${isChosen ? 'chosen' : ''}">
+                            <div class="feedback-value ${feedbackClass}">
+                                ${face.outcome > 0 ? '+' + face.outcome : face.outcome}
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                return html;
+            } else {
+                // Experimental: single outcome
+                const feedbackClass = outcome > 0 ? 'positive' : 'negative';
+                const feedbackText = outcome > 0 ? `+${outcome}` : outcome;
+                return `
+                    <div class="feedback ${feedbackClass}">
+                        ${feedbackText}
+                    </div>
+                `;
+            }
         },
         choices: "NO_KEYS",  // Disable keyboard responses
         trial_duration: 1000,  // Auto-advance after 1 second
@@ -1107,9 +1139,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                             prolific_pid: urlParams.participantId || null,
                             study_id: urlParams.studyId || null,
                             session_id: urlParams.sessionId || null,
+                            condition_code: urlParams.conditionCode,
                             condition: urlParams.condition,
                             majority_group: urlParams.majorityGroup,
-                            informed: urlParams.informed,
+                            p1_type: urlParams.p1Type,
+                            p2_exposure: urlParams.p2Exposure,
                             timestamp: new Date().toISOString(),
                             date_readable: new Date().toLocaleString(),
                             debug_mode: debugMode

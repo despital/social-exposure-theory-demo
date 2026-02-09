@@ -92,9 +92,11 @@ def flatten_participants(firebase_data):
             'prolific_pid': metadata.get('prolific_pid'),
             'study_id': metadata.get('study_id'),
             'session_id': metadata.get('session_id'),
+            'condition_code': metadata.get('condition_code'),
             'condition': metadata.get('condition'),
             'majority_group': metadata.get('majority_group'),
-            'informed': metadata.get('informed'),
+            'p1_type': metadata.get('p1_type'),
+            'p2_exposure': metadata.get('p2_exposure'),
             'timestamp': metadata.get('timestamp'),
             'debug_mode': metadata.get('debug_mode'),
             # Summary scores

@@ -246,28 +246,33 @@ export function getOutcome(face) {
 /**
  * Read experiment settings from the URL query string.
  *
- * When a participant opens the experiment link, their condition and identity
- * information are embedded in the URL as query parameters. For example:
- *   https://example.com/experiment?condition=equal&majority_group=red&participant_id=ABC123
+ * Condition assignment uses a single encoded URL parameter `c` that maps
+ * to an entry in CONFIG.CONDITION_CODES. For example, `?c=RXB` decodes to:
+ *   - Phase 1 exposure: majority-minority (red majority)
+ *   - Phase 1 type: experimental
+ *   - Phase 2 exposure: majority-blue
  *
- * This function extracts those parameters and returns them as a single
- * object. If a parameter is missing from the URL, a sensible default is used:
+ * The 3-character code scheme:
+ *   1st char — Phase 1 Exposure:  E=Equal, R=Red-majority, B=Blue-majority
+ *   2nd char — Phase 1 Type:      X=Experimental, C=Control
+ *   3rd char — Phase 2 Exposure:  E=Equal, R=Red-majority, B=Blue-majority
+ *
+ * If the `c` parameter is missing or invalid, the function falls back to
+ * CONFIG.DEFAULT_CONDITION_CODE ('EXE') and logs a warning. For backward
+ * compatibility during development, legacy `condition` and `majority_group`
+ * parameters are also checked.
  *
  * Returned object properties:
- *   - condition (string): The experimental condition — either 'equal' (both
- *     groups shown equally often) or 'majority-minority' (one group shown
- *     much more than the other). Defaults to 'equal'.
- *   - majorityGroup (string): Which color group is the majority — 'red' or
- *     'blue'. Only matters when condition is 'majority-minority'. Defaults
- *     to 'red'.
- *   - informed (boolean): Whether the participant is told about the group
- *     manipulation beforehand. Defaults to false.
- *   - participantId (string): A unique identifier for this participant.
- *     Pulled from Prolific (PROLIFIC_PID) if available, otherwise from
- *     a custom 'participant_id' parameter, or auto-generated from the
- *     current timestamp (e.g., 'P1700000000000').
- *   - studyId (string|null): The Prolific study ID, if running on Prolific.
- *   - sessionId (string|null): The Prolific session ID, if running on Prolific.
+ *   - conditionCode (string): The raw 3-character code from the URL (e.g., 'RXB').
+ *   - condition (string): Phase 1 exposure — 'equal' or 'majority-minority'.
+ *   - majorityGroup (string): 'red' or 'blue'. Only meaningful when
+ *     condition is 'majority-minority'. Defaults to 'red' for equal.
+ *   - p1Type (string): Phase 1 type — 'experimental' or 'control'.
+ *   - p2Exposure (string): Phase 2 exposure — 'equal', 'majority-red',
+ *     or 'majority-blue'.
+ *   - participantId (string): Prolific PID, custom ID, or auto-generated.
+ *   - studyId (string|null): Prolific study ID.
+ *   - sessionId (string|null): Prolific session ID.
  *
  * @param {object} jsPsych - The jsPsych instance, which provides
  *   data.getURLVariable() for reading query parameters.
@@ -278,10 +283,49 @@ export function getURLParams(jsPsych) {
     const studyID = jsPsych.data.getURLVariable('STUDY_ID');
     const sessionID = jsPsych.data.getURLVariable('SESSION_ID');
 
+    // Decode condition from ?c= parameter
+    let conditionCode = jsPsych.data.getURLVariable('c');
+    let decoded;
+
+    if (conditionCode && CONFIG.CONDITION_CODES[conditionCode]) {
+        decoded = CONFIG.CONDITION_CODES[conditionCode];
+    } else if (conditionCode) {
+        console.warn(
+            `Unknown condition code "${conditionCode}". ` +
+            `Valid codes: ${Object.keys(CONFIG.CONDITION_CODES).join(', ')}. ` +
+            `Falling back to "${CONFIG.DEFAULT_CONDITION_CODE}".`
+        );
+        conditionCode = CONFIG.DEFAULT_CONDITION_CODE;
+        decoded = CONFIG.CONDITION_CODES[conditionCode];
+    } else {
+        // Check for legacy parameters (backward compat during development)
+        const legacyCondition = jsPsych.data.getURLVariable('condition');
+        if (legacyCondition) {
+            console.warn(
+                'Legacy URL parameters detected (condition=, majority_group=). ' +
+                'Please switch to the new ?c= format. ' +
+                'See CONDITION_CODES in config.js for valid codes.'
+            );
+            const legacyMajority = jsPsych.data.getURLVariable('majority_group') || 'red';
+            decoded = {
+                p1Exposure: legacyCondition,
+                p1Type: 'experimental',
+                p2Exposure: 'equal',
+                majorityGroup: legacyMajority
+            };
+            conditionCode = 'LEGACY';
+        } else {
+            conditionCode = CONFIG.DEFAULT_CONDITION_CODE;
+            decoded = CONFIG.CONDITION_CODES[conditionCode];
+        }
+    }
+
     return {
-        condition: jsPsych.data.getURLVariable('condition') || 'equal',
-        majorityGroup: jsPsych.data.getURLVariable('majority_group') || 'red',
-        informed: jsPsych.data.getURLVariable('informed') === 'true',
+        conditionCode: conditionCode,
+        condition: decoded.p1Exposure,
+        majorityGroup: decoded.majorityGroup || 'red',
+        p1Type: decoded.p1Type,
+        p2Exposure: decoded.p2Exposure,
         participantId: prolificPID || jsPsych.data.getURLVariable('participant_id') || `P${Date.now()}`,
         studyId: studyID || null,
         sessionId: sessionID || null

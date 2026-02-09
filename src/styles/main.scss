@@ -78,3 +78,38 @@ body {
 .feedback.negative {
     color: red;
 }
+
+// Control condition feedback: 2×2 grid showing all 4 faces with outcomes
+.control-feedback-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 440px;
+    margin: 20px auto;
+}
+
+.control-feedback-cell {
+    text-align: center;
+    padding: 20px 10px;
+    border: 3px solid transparent;
+    border-radius: 10px;
+}
+
+.control-feedback-cell.chosen {
+    border-color: #333;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.feedback-value {
+    font-size: 48px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+.feedback-value.positive {
+    color: green;
+}
+
+.feedback-value.negative {
+    color: red;
+}

@@ -79,5 +79,41 @@ export const CONFIG = {
         { red: 2, blue: 2 },
         { red: 1, blue: 3 },
         { red: 0, blue: 4 }
-    ]
+    ],
+
+    // Condition codebook: maps short URL codes to internal condition parameters.
+    // URL parameter: ?c=<CODE>  (e.g., ?c=RXB)
+    //
+    // Code scheme (3 characters):
+    //   1st char — Phase 1 Exposure:  E=Equal, R=Red-majority, B=Blue-majority
+    //   2nd char — Phase 1 Type:      X=Experimental, C=Control
+    //   3rd char — Phase 2 Exposure:  E=Equal, R=Red-majority, B=Blue-majority
+    CONDITION_CODES: {
+        // Equal exposure (Phase 1)
+        'EXE': { p1Exposure: 'equal', p1Type: 'experimental', p2Exposure: 'equal',        majorityGroup: null,   label: 'Equal / Experimental / P2-Equal' },
+        'EXR': { p1Exposure: 'equal', p1Type: 'experimental', p2Exposure: 'majority-red',  majorityGroup: null,   label: 'Equal / Experimental / P2-Red' },
+        'EXB': { p1Exposure: 'equal', p1Type: 'experimental', p2Exposure: 'majority-blue', majorityGroup: null,   label: 'Equal / Experimental / P2-Blue' },
+        'ECE': { p1Exposure: 'equal', p1Type: 'control',      p2Exposure: 'equal',        majorityGroup: null,   label: 'Equal / Control / P2-Equal' },
+        'ECR': { p1Exposure: 'equal', p1Type: 'control',      p2Exposure: 'majority-red',  majorityGroup: null,   label: 'Equal / Control / P2-Red' },
+        'ECB': { p1Exposure: 'equal', p1Type: 'control',      p2Exposure: 'majority-blue', majorityGroup: null,   label: 'Equal / Control / P2-Blue' },
+
+        // Majority-Red exposure (Phase 1)
+        'RXE': { p1Exposure: 'majority-minority', p1Type: 'experimental', p2Exposure: 'equal',        majorityGroup: 'red', label: 'Majority-Red / Experimental / P2-Equal' },
+        'RXR': { p1Exposure: 'majority-minority', p1Type: 'experimental', p2Exposure: 'majority-red',  majorityGroup: 'red', label: 'Majority-Red / Experimental / P2-Red' },
+        'RXB': { p1Exposure: 'majority-minority', p1Type: 'experimental', p2Exposure: 'majority-blue', majorityGroup: 'red', label: 'Majority-Red / Experimental / P2-Blue' },
+        'RCE': { p1Exposure: 'majority-minority', p1Type: 'control',      p2Exposure: 'equal',        majorityGroup: 'red', label: 'Majority-Red / Control / P2-Equal' },
+        'RCR': { p1Exposure: 'majority-minority', p1Type: 'control',      p2Exposure: 'majority-red',  majorityGroup: 'red', label: 'Majority-Red / Control / P2-Red' },
+        'RCB': { p1Exposure: 'majority-minority', p1Type: 'control',      p2Exposure: 'majority-blue', majorityGroup: 'red', label: 'Majority-Red / Control / P2-Blue' },
+
+        // Majority-Blue exposure (Phase 1)
+        'BXE': { p1Exposure: 'majority-minority', p1Type: 'experimental', p2Exposure: 'equal',        majorityGroup: 'blue', label: 'Majority-Blue / Experimental / P2-Equal' },
+        'BXR': { p1Exposure: 'majority-minority', p1Type: 'experimental', p2Exposure: 'majority-red',  majorityGroup: 'blue', label: 'Majority-Blue / Experimental / P2-Red' },
+        'BXB': { p1Exposure: 'majority-minority', p1Type: 'experimental', p2Exposure: 'majority-blue', majorityGroup: 'blue', label: 'Majority-Blue / Experimental / P2-Blue' },
+        'BCE': { p1Exposure: 'majority-minority', p1Type: 'control',      p2Exposure: 'equal',        majorityGroup: 'blue', label: 'Majority-Blue / Control / P2-Equal' },
+        'BCR': { p1Exposure: 'majority-minority', p1Type: 'control',      p2Exposure: 'majority-red',  majorityGroup: 'blue', label: 'Majority-Blue / Control / P2-Red' },
+        'BCB': { p1Exposure: 'majority-minority', p1Type: 'control',      p2Exposure: 'majority-blue', majorityGroup: 'blue', label: 'Majority-Blue / Control / P2-Blue' },
+    },
+
+    // Default condition code when ?c= is missing or invalid
+    DEFAULT_CONDITION_CODE: 'EXE'
 };
