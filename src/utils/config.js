@@ -71,15 +71,15 @@ export const CONFIG = {
         end: []  // Skip directly to end
     },
 
-    // Phase 2 parameters
-    PHASE2_TRIALS_PER_COMPOSITION: 5,
-    PHASE2_COMPOSITIONS: [
-        { red: 4, blue: 0 },
-        { red: 3, blue: 1 },
-        { red: 2, blue: 2 },
-        { red: 1, blue: 3 },
-        { red: 0, blue: 4 }
-    ],
+    // Phase 2 parameters (single-face slider design)
+    // Total novel faces shown; adjustable (recommended range: 40-60)
+    PHASE2_TOTAL_TRIALS: 50,
+    // Red:blue split per Phase 2 Exposure level (must sum to 1.0)
+    PHASE2_EXPOSURE_RATIOS: {
+        'equal':         { red: 0.50, blue: 0.50 },
+        'majority-red':  { red: 0.80, blue: 0.20 },
+        'majority-blue': { red: 0.20, blue: 0.80 }
+    },
 
     // Condition codebook: maps short URL codes to internal condition parameters.
     // URL parameter: ?c=<CODE>  (e.g., ?c=RXB)

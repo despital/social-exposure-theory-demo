@@ -10,9 +10,9 @@
 - [x] Remove informedness from URL parameters as this was not a manipulated variable in Study 1 and modify conditions accordingly.
 ## Major Design Change (High Priority)
 - Phase 2: Show one novel face never shown before in the experiment and ask participants whether they'd like to approach/avoid this person using a slider design.
-  - [ ] Confirm trial numbers
-  - [ ] Generate additional faces
-  - [ ] Confirm group association status (What are the conditions) 
+  - [x] Confirm trial numbers (50 trials, adjustable 40-60; see EXPERIMENT_DESIGN.md)
+  - [ ] Generate additional faces (need 120 novel identities: 60 red, 60 blue)
+  - [x] Confirm group association status (Phase 2 Exposure: Equal 50/50, Majority 80/20, mirroring Phase 1)
 - [x] Create a control condition (encoded as P1 Type = Control in condition codes, e.g., `ECE`, `RCB`, etc.)
   - [x] Phase 1: show all four reward values associated with each face (feedback screen shows all 4 outcomes)
   - [x] Phase 2: no change compared to the other conditions

@@ -202,11 +202,23 @@ By presenting a single novel face per trial (rather than a set of faces to choos
 |---|---|---|---|
 | Faces per trial | 1 (novel) | No | Core to the slider design |
 | Response type | Continuous slider | No | Approach-avoidance scale |
-| Trial count | TBD | **Yes** | Needs to be confirmed |
-| Novel face pool size | TBD | **Yes** | Additional faces need to be generated |
-| Phase 2 exposure ratios | TBD | **Yes** | Exact red/blue split for each level |
+| Trial count | 50 (adjustable: 40–60) | **Yes** | Configured via `PHASE2_TOTAL_TRIALS` in config.js |
+| Novel face pool size | 120 (60 per color) | **Yes** | Sample without replacement; buffer allows stimulus variability |
+| Phase 2 exposure ratios | Equal: 50/50, Majority: 80/20 | Unlikely | Mirrors Phase 1 ratios; configured in `PHASE2_EXPOSURE_RATIOS` |
 | Feedback | None | Unlikely | No reward/punishment in Phase 2 |
 | Slider anchoring and scale | TBD | **Yes** | Endpoint wording, range (0–100?), starting position |
+
+### Trial Breakdown by Phase 2 Exposure Level
+
+With 50 total trials (default):
+
+| P2 Exposure Level | Red faces | Blue faces | Min per-color obs |
+|---|---|---|---|
+| Equal | 25 | 25 | 25 |
+| Majority-Red | 40 | 10 | 10 |
+| Majority-Blue | 10 | 40 | 10 |
+
+The 10 minority-color observations at 80/20 is the practical minimum for a stable within-person slider mean. Increasing to 60 trials yields 12 minority-color observations.
 
 ---
 
@@ -283,9 +295,9 @@ The following parameters are flagged for potential revision before or after the 
 | Bad person P(reward) | 0.5 | Tied to diagnosticity |
 | Interaction framing | "Choose a person to interact with" | Approach/avoid vs. help/hurt wording |
 | Control feedback duration | 1000ms (same as experimental) | May need longer for participants to process 4 outcomes |
-| Phase 2 trial count | TBD | Needs to be decided |
-| Phase 2 novel face pool | TBD | Additional faces need to be generated |
-| Phase 2 exposure ratios | TBD | Exact red/blue split for each P2 level |
+| Phase 2 trial count | 50 (adjustable: 40–60) | Configurable via `PHASE2_TOTAL_TRIALS` |
+| Phase 2 novel face pool | 120 (60 per color) | Additional faces need to be generated |
+| Phase 2 exposure ratios | Equal: 50/50, Majority: 80/20 | Mirrors Phase 1 ratios |
 | Phase 3 inclusion | Currently included | May be dropped if experiment time is too long |
 | Sample size | TBD | Power analysis needed (18 cells requires careful planning) |
 | Points-to-money conversion | TBD | Incentive structure |

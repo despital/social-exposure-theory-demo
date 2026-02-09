@@ -1,6 +1,8 @@
 # Phase 2: Partner Choice Task - Design Document
 
-**Status:** Demo Implementation Complete (Placeholder Stimuli)
+> **OBSOLETE:** This document describes the 4-face partner-choice design originally prototyped for Phase 2. Study 1 now uses a **single-face slider design** (approach-avoidance). See [EXPERIMENT_DESIGN.md](EXPERIMENT_DESIGN.md) for the current Phase 2 specification. This document is retained for reference as the partner-choice design may be revisited in Study 2.
+
+**Status:** Superseded (was: Demo Implementation Complete)
 **Last Updated:** 2025-10-01
 
 ---
