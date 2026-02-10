@@ -5,17 +5,6 @@
 ---
 ## Development
 - [ ] Obtain consent form (requested to check with lab manager)
-- [ ] Discuss phase 2 design points again
-
-## Major Design Change (High Priority)
-- Phase 2: Show one novel face never shown before in the experiment and ask participants whether they'd like to approach/avoid this person using a slider design.
-  - [x] Confirm trial numbers (50 trials, adjustable 40-60; see EXPERIMENT_DESIGN.md)
-  - [x] Generate additional faces (need 120 novel identities: 60 red, 60 blue)
-  - [x] Confirm group association status (Phase 2 Exposure: Equal 50/50, Majority 80/20, mirroring Phase 1)
-- [x] Create a control condition (encoded as P1 Type = Control in condition codes, e.g., `ECE`, `RCB`, etc.)
-  - [x] Phase 1: show all four reward values associated with each face (feedback screen shows all 4 outcomes)
-  - [x] Phase 2: no change compared to the other conditions
-- [ ] Confirm if phase 3 is needed (additional data, but might eat away experiment time)
 
 ## Pre-Launch (Priority)
 
@@ -38,18 +27,9 @@
 
 ## Future Enhancements (Optional)
 
-### Experiment Features
-- [ ] Attention checks
-- [ ] Practice trials before Phase 1
-- [ ] Image preloading optimization
-- [ ] Mobile responsiveness improvements
-
 ### Data & Analysis
 - [ ] Data analysis scripts (Python/R)
 - [ ] Data visualization dashboard
-- [ ] Experimenter monitoring dashboard
-- [ ] Automated data quality checks
-
 ---
 
 ## Completed ✅
@@ -105,3 +85,15 @@
 **Firebase:**
 - [x] Verify Firebase Security Rules are active
 - [x] Set `DISABLE_DATA_SAVING: false` in `config.js`
+
+- [x] Discuss phase 2 design points again
+
+## Major Design Change (High Priority)
+- Phase 2: Show one novel face never shown before in the experiment and ask participants whether they'd like to approach/avoid this person using a slider design.
+  - [x] Confirm trial numbers (50 trials, adjustable 40-60; see EXPERIMENT_DESIGN.md)
+  - [x] Generate additional faces (need 120 novel identities: 60 red, 60 blue)
+  - [x] Confirm group association status (Phase 2 Exposure: Equal 50/50, Majority 80/20, mirroring Phase 1)
+- [x] Create a control condition (encoded as P1 Type = Control in condition codes, e.g., `ECE`, `RCB`, etc.)
+  - [x] Phase 1: show all four reward values associated with each face (feedback screen shows all 4 outcomes)
+  - [x] Phase 2: no change compared to the other conditions
+- [x] Confirm if phase 3 is needed (additional data, but might eat away experiment time)

@@ -18,8 +18,8 @@ export const CONFIG = {
 
     // Good/Bad person ratios (modifiable per group)
     GOOD_BAD_RATIO: {
-        red: [0.8, 0.2],   // [good_ratio, bad_ratio]
-        blue: [0.8, 0.2]
+        red: [0.7, 0.3],   // [good_ratio, bad_ratio]
+        blue: [0.7, 0.3]
     },
 
     // Reward/punishment probabilities

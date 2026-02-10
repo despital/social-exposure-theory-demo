@@ -44,7 +44,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         show_progress_bar: true,
         auto_update_progress_bar: false,
         on_finish: function() {
-            jsPsych.data.displayData();
         }
     });
 
@@ -183,7 +182,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             stimulus: `
                 <h2>Informed Consent</h2>
                 <p>Before we begin, please read and agree to the informed consent form.</p>
-                <p>This study involves viewing faces and making decisions about who to interact with.</p>
+                <p>Please note that you're free to leave at any point of the experiment even if you have agreed to the consent form.</p>
                 <p>The experiment will take approximately 20-25 minutes.</p>
             `,
             choices: ['View Consent Form'],
@@ -695,8 +694,23 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             const face = jsPsych.evaluateTimelineVariable('face');
             data.slider_rating = data.response;
 
-            // Hidden outcome based on face's good/bad status (not shown to participant)
-            const outcome = getOutcome(face);
+            // Scoring based on slider position relative to face's good/bad status:
+            //   Good face: approach (>50) = correct, avoid (<50) = incorrect
+            //   Bad face:  avoid (<50) = correct, approach (>50) = incorrect
+            //   Exactly 50 = neutral (0 points)
+            const rating = data.slider_rating;
+            let outcome;
+            if (rating === 50) {
+                outcome = 0;
+                data.correct = null; // neutral
+            } else if (face.isGood) {
+                data.correct = rating > 50;
+                outcome = rating > 50 ? CONFIG.REWARD_VALUE : CONFIG.PUNISHMENT_VALUE;
+            } else {
+                data.correct = rating < 50;
+                outcome = rating < 50 ? CONFIG.REWARD_VALUE : CONFIG.PUNISHMENT_VALUE;
+            }
+
             phase2Score += outcome;
             data.outcome = outcome;
             data.phase2_score = phase2Score;
@@ -707,6 +721,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             // Phase 1 ends at 0.6, Phase 2 occupies 0.6 to 0.7 (10% of total bar)
             const phase2Progress = phase2TrialCount / phase2Trials.length;
             jsPsych.progressBar.progress = 0.6 + (phase2Progress * 0.1);
+
+            // Remove clutter fields auto-added by jsPsych
+            delete data.stimulus;
+            delete data.slider_start;
+            delete data.plugin_version;
+            delete data.response;     // duplicate of slider_rating
+            delete data.trial_type;   // redundant with task
         }
     };
 
@@ -1027,7 +1048,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 type: 'comment',
                                 title: 'What part of the experiment was unclear or confusing to you?',
                                 name: 'clarity_elaboration',
-                                isRequired: true,
+                                isRequired: false,
                                 visibleIf: '{clarity_rating} <= 2'
                             },
                             {
