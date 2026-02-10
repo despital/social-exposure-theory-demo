@@ -13,6 +13,7 @@ import "@jspsych/plugin-survey/css/survey.css";
 import { initJsPsych } from "jspsych";
 import HtmlKeyboardResponsePlugin from "@jspsych/plugin-html-keyboard-response";
 import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
+import HtmlSliderResponsePlugin from "@jspsych/plugin-html-slider-response";
 import ExternalHtmlPlugin from "@jspsych/plugin-external-html";
 import survey from '@jspsych/plugin-survey';
 import ImageMultiChoicePlugin from "./plugins/plugin-image-multi-choice.js";
@@ -24,7 +25,7 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 
 // Import utilities
 import { CONFIG } from "./utils/config.js";
-import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generatePhase2Trials, generatePhase3Trials } from "./utils/helpers.js";
+import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generateNovelFaces, generatePhase2Trials, generatePhase3Trials } from "./utils/helpers.js";
 
 // Import country and language data
 import countries from 'i18n-iso-countries';
@@ -129,14 +130,17 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     let totalScore = 0;
     let trialCount = 0;
 
-    // Generate Phase 2 trials (needed even if Phase 2 is skipped, for Phase 3)
-    const originalPhase2Trials = CONFIG.PHASE2_TRIALS_PER_COMPOSITION;
+    // Generate novel faces for Phase 2
+    const novelFaces = generateNovelFaces(jsPsych);
+
+    // Generate Phase 2 trials (single-face slider design using novel faces)
+    const originalPhase2Total = CONFIG.PHASE2_TOTAL_TRIALS;
     if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE2_TRIALS) {
-        CONFIG.PHASE2_TRIALS_PER_COMPOSITION = 1;
-        console.log('Debug mode: Reduced Phase 2 to 1 trial per composition');
+        CONFIG.PHASE2_TOTAL_TRIALS = 6; // 3 red + 3 blue in debug
+        console.log('Debug mode: Reduced Phase 2 to ' + CONFIG.PHASE2_TOTAL_TRIALS + ' trials');
     }
-    const phase2Trials = generatePhase2Trials(faces, jsPsych);
-    CONFIG.PHASE2_TRIALS_PER_COMPOSITION = originalPhase2Trials; // Restore original value
+    const phase2Trials = generatePhase2Trials(novelFaces, urlParams, jsPsych);
+    CONFIG.PHASE2_TOTAL_TRIALS = originalPhase2Total; // Restore original value
 
     let phase2Score = 0;
     let phase2TrialCount = 0;
@@ -642,10 +646,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: `
             <div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Phase 2 Instructions</h2>
-                <p>In this phase, you will see <strong>4 new faces</strong> on each trial.</p>
-                <p>Your task is to choose <strong>one person</strong> you would like to interact with by clicking on their face.</p>
-                <p><strong>Note:</strong> You will NOT receive immediate feedback after each choice.</p>
-                <p>At the end of this phase, you will see your total score for Phase 2.</p>
+                <p>In this phase, you will see <strong>new faces</strong> one at a time.</p>
+                <p>For each face, please use the slider to indicate how willing you are to <strong>approach</strong> or <strong>avoid</strong> this person.</p>
+                <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
                 <p>Press any key to start Phase 2.</p>
             </div>
         `,
@@ -656,52 +659,49 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     timeline.push(phase2Instructions);
 
     // ========================================================================
-    // PHASE 2: PARTNER CHOICE TASK
+    // PHASE 2: APPROACH-AVOIDANCE SLIDER TASK (NOVEL FACES)
     // ========================================================================
 
-        // Phase 2 Choice trial (no feedback)
-    const phase2ChoiceTrial = {
-        type: ImageMultiChoicePlugin,
-        images: function() {
-            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
-            return trialFaces.map(face => ({
-                src: face.imagePath,
-                color: face.color,
-                data: {
-                    id: face.id,
-                    isGood: face.isGood
-                }
-            }));
+    const phase2SliderTrial = {
+        type: HtmlSliderResponsePlugin,
+        stimulus: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return `
+                <div style="text-align: center;">
+                    <img src="${face.imagePath}"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
+                </div>
+            `;
         },
-        prompt: `<p>Choose a person you would like to interact with:</p>`,
-        image_width: 200,
-        image_height: 200,
-        grid_columns: 2,
-        gap: 20,
+        labels: ['Avoid', 'Neutral', 'Approach'],
+        min: 0,
+        max: 100,
+        slider_start: 50,
+        button_label: 'Submit',
+        require_movement: true,
+        prompt: '<p>How willing are you to approach or avoid this person?</p>',
         data: function() {
-            const composition = jsPsych.evaluateTimelineVariable('composition');
+            const face = jsPsych.evaluateTimelineVariable('face');
             return {
-                task: 'phase2_choice',
+                task: 'phase2_slider',
                 phase: 2,
-                composition: composition,
-                red_count: composition.red,
-                blue_count: composition.blue
+                face_id: face.id,
+                face_color: face.color,
+                face_is_good: face.isGood,
+                image_path: face.imagePath
             };
         },
         on_finish: function(data) {
-            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
-            const chosenFace = trialFaces[data.response];
+            const face = jsPsych.evaluateTimelineVariable('face');
+            data.slider_rating = data.response;
 
-            // Calculate outcome (but don't show it)
-            const outcome = getOutcome(chosenFace);
+            // Hidden outcome based on face's good/bad status (not shown to participant)
+            const outcome = getOutcome(face);
             phase2Score += outcome;
-            phase2TrialCount++;
-
-            data.chosen_face_id = chosenFace.id;
-            data.chosen_face_color = chosenFace.color;
-            data.chosen_face_is_good = chosenFace.isGood;
             data.outcome = outcome;
             data.phase2_score = phase2Score;
+
+            phase2TrialCount++;
 
             // Update progress bar
             // Phase 1 ends at 0.6, Phase 2 occupies 0.6 to 0.7 (10% of total bar)
@@ -712,7 +712,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     // Phase 2 timeline
     const phase2Timeline = {
-        timeline: [phase2ChoiceTrial],
+        timeline: [phase2SliderTrial],
         timeline_variables: phase2Trials
     };
     timeline.push(phase2Timeline);
@@ -720,18 +720,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         // Phase 2 Summary
         const phase2Summary = {
             type: HtmlKeyboardResponsePlugin,
-            stimulus: function() {
-                return `
-                    <h2>Phase 2 Complete!</h2>
-                    <p>Thank you for completing both phases!</p>
-                    <p>Press any key to continue.</p>
-                `;
-            },
+            stimulus: `
+                <h2>Phase 2 Complete!</h2>
+                <p>Thank you for completing your ratings!</p>
+                <p>Press any key to continue.</p>
+            `,
             post_trial_gap: 500,
             data: {
-                task: 'phase2_summary',
-                phase2_score: phase2Score,
-                total_combined_score: totalScore + phase2Score
+                task: 'phase2_summary'
             }
         };
         timeline.push(phase2Summary);
@@ -766,8 +762,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     };
     timeline.push(phase3Instructions);
 
-    // Generate Phase 3 trials
-    let phase3Trials = generatePhase3Trials(trials, phase2Trials, faces, jsPsych);
+    // Generate Phase 3 trials (Phase 1 faces only — novel faces from Phase 2 are excluded)
+    let phase3Trials = generatePhase3Trials(trials, faces, jsPsych);
 
     // In debug mode, reduce to 5 faces (10 trials: 5 goodbad + 5 confidence)
     if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE3_TRIALS) {
@@ -1028,6 +1024,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 maxRateDescription: '5 (Very clear)'
                             },
                             {
+                                type: 'comment',
+                                title: 'What part of the experiment was unclear or confusing to you?',
+                                name: 'clarity_elaboration',
+                                isRequired: true,
+                                visibleIf: '{clarity_rating} <= 2'
+                            },
+                            {
                                 type: 'radiogroup',
                                 title: 'How would you describe the length of the experiment?',
                                 name: 'length_rating',
@@ -1068,9 +1071,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                         <p>Your participation is greatly appreciated.</p>
                         <h3>Your Performance:</h3>
                         <div style="background-color: #f0f0f0; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                            <p style="font-size: 18px; margin: 10px 0;">Phase 1 Score: <strong>${totalScore}</strong></p>
-                            <p style="font-size: 18px; margin: 10px 0;">Phase 2 Score: <strong>${phase2Score}</strong></p>
-                            <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">Total Score: <strong>${totalScore + phase2Score}</strong></p>
+                            <p style="font-size: 18px; margin: 10px 0;">Phase 1 Score: <strong>${totalScore}</strong> points</p>
+                            <p style="font-size: 18px; margin: 10px 0;">Phase 2 Score: <strong>${phase2Score}</strong> points</p>
+                            <p style="font-size: 22px; margin: 10px 0;">Total: <strong>${totalScore + phase2Score}</strong> points</p>
+                            <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">Bonus: <strong>$${((totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
                         </div>
                         <p>Your data will be saved in the next step.</p>
                     </div>
@@ -1091,9 +1095,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             stimulus: function() {
                 return `
                     <h2>Experiment Complete!</h2>
-                    <p>Phase 1 score: <strong>${totalScore}</strong></p>
-                    <p>Phase 2 score: <strong>${phase2Score}</strong></p>
-                    <p>Total combined score: <strong>${totalScore + phase2Score}</strong></p>
+                    <p>Phase 1 score: <strong>${totalScore}</strong> points</p>
+                    <p>Phase 2 score: <strong>${phase2Score}</strong> points</p>
+                    <p>Total: <strong>${totalScore + phase2Score}</strong> points</p>
+                    <p>Bonus: <strong>$${((totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
                     <p>Thank you for participating.</p>
                     <p>Press any key to save your data.</p>
                 `;
@@ -1144,6 +1149,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                             majority_group: urlParams.majorityGroup,
                             p1_type: urlParams.p1Type,
                             p2_exposure: urlParams.p2Exposure,
+                            pilot_mode: CONFIG.PILOT_MODE,
                             timestamp: new Date().toISOString(),
                             date_readable: new Date().toLocaleString(),
                             debug_mode: debugMode

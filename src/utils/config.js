@@ -7,10 +7,14 @@ export const CONFIG = {
     EXPOSURES_PER_FACE: 3,
     FACES_PER_TRIAL: 4,
 
-    // Stimuli
+    // Stimuli — Phase 1 (base faces)
     TOTAL_FACES: 100,
     RED_FACES: 50,
     BLUE_FACES: 50,
+
+    // Stimuli — Phase 2 (novel faces)
+    // Named face_n001_red.png … face_n120_red.png (and _blue), stored in stimuli/faces/
+    TOTAL_NOVEL_FACES: 120,
 
     // Good/Bad person ratios (modifiable per group)
     GOOD_BAD_RATIO: {
@@ -32,6 +36,10 @@ export const CONFIG = {
     REWARD_VALUE: 1,
     PUNISHMENT_VALUE: -5,
 
+    // Points-to-money conversion (shown at end of experiment)
+    // 1 point = $0.01 → 100 points = $1.00 (subject to change)
+    POINTS_TO_DOLLARS: 0.01,
+
     // Firebase configuration - Social Exposure Theory 2026
     FIREBASE_CONFIG: {
         apiKey: "AIzaSyCAtUZBBpJKiF3pI3CHCTeKxk_ayyiGs3I",
@@ -46,6 +54,12 @@ export const CONFIG = {
     // Development mode - disable Firebase data saving
     // Set to false when ready for production data collection
     DISABLE_DATA_SAVING: false,
+
+    // Pilot mode — when true, Phase 2 exposure is forced to 'equal' regardless
+    // of the 3rd character in the condition code. This effectively reduces the
+    // design to 3 (P1 Exposure) x 2 (P1 Type) = 6 active conditions for the pilot.
+    // Set to false to re-enable the full 18-condition design.
+    PILOT_MODE: true,
 
     // Debug mode settings (activated via ?debug=true URL parameter)
     DEBUG_MODE: {
@@ -72,8 +86,8 @@ export const CONFIG = {
     },
 
     // Phase 2 parameters (single-face slider design)
-    // Total novel faces shown; adjustable (recommended range: 40-60)
-    PHASE2_TOTAL_TRIALS: 50,
+    // Total novel faces shown per session; adjustable
+    PHASE2_TOTAL_TRIALS: 60,
     // Red:blue split per Phase 2 Exposure level (must sum to 1.0)
     PHASE2_EXPOSURE_RATIOS: {
         'equal':         { red: 0.50, blue: 0.50 },

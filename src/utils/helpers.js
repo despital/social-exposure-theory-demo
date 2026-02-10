@@ -59,6 +59,60 @@ export function generateFaces(jsPsych) {
 }
 
 /**
+ * Generate novel face objects for Phase 2.
+ *
+ * Works identically to generateFaces() but draws from the pool of 120 novel
+ * face identities (face_n001 … face_n120). Each novel face is randomly
+ * assigned to either red or blue (60 per group) and gets a good/bad label
+ * using the same ratios as Phase 1. Good/bad status is tracked internally
+ * but is NOT revealed to participants during Phase 2 — it is only used for
+ * backend scoring shown at the very end of the experiment.
+ *
+ * @param {object} jsPsych - The jsPsych instance for randomization.
+ * @returns {Array<object>} An array of 120 novel face objects, each with
+ *   id (e.g. "n001"), color, imagePath, and isGood.
+ */
+export function generateNovelFaces(jsPsych) {
+    const novelIds = Array.from({length: CONFIG.TOTAL_NOVEL_FACES}, (_, i) => i + 1);
+    const shuffledIds = jsPsych.randomization.shuffle(novelIds);
+    const half = CONFIG.TOTAL_NOVEL_FACES / 2;
+    const redIds = shuffledIds.slice(0, half);
+    const blueIds = shuffledIds.slice(half);
+
+    const faces = [];
+
+    redIds.forEach(id => {
+        faces.push({
+            id: `n${String(id).padStart(3, '0')}`,
+            color: 'red',
+            imagePath: `stimuli/faces/face_n${String(id).padStart(3, '0')}_red.png`
+        });
+    });
+
+    blueIds.forEach(id => {
+        faces.push({
+            id: `n${String(id).padStart(3, '0')}`,
+            color: 'blue',
+            imagePath: `stimuli/faces/face_n${String(id).padStart(3, '0')}_blue.png`
+        });
+    });
+
+    // Assign good/bad using the same ratio as Phase 1
+    const redFaces = faces.filter(f => f.color === 'red');
+    const blueFaces = faces.filter(f => f.color === 'blue');
+
+    const shuffledRed = jsPsych.randomization.shuffle(redFaces);
+    const numGoodRed = Math.round(half * CONFIG.GOOD_BAD_RATIO.red[0]);
+    shuffledRed.forEach((face, idx) => { face.isGood = idx < numGoodRed; });
+
+    const shuffledBlue = jsPsych.randomization.shuffle(blueFaces);
+    const numGoodBlue = Math.round(half * CONFIG.GOOD_BAD_RATIO.blue[0]);
+    shuffledBlue.forEach((face, idx) => { face.isGood = idx < numGoodBlue; });
+
+    return faces;
+}
+
+/**
  * Assign good/bad status to faces (stratified by color).
  *
  * In this experiment, each face is secretly labeled as either a "good" person
@@ -320,12 +374,22 @@ export function getURLParams(jsPsych) {
         }
     }
 
+    // In pilot mode, force Phase 2 exposure to 'equal' regardless of condition code
+    let p2Exposure = decoded.p2Exposure;
+    if (CONFIG.PILOT_MODE && p2Exposure !== 'equal') {
+        console.warn(
+            `Pilot mode: Phase 2 exposure overridden from "${p2Exposure}" to "equal". ` +
+            `Set PILOT_MODE to false in config.js to re-enable Phase 2 exposure manipulation.`
+        );
+        p2Exposure = 'equal';
+    }
+
     return {
         conditionCode: conditionCode,
         condition: decoded.p1Exposure,
         majorityGroup: decoded.majorityGroup || 'red',
         p1Type: decoded.p1Type,
-        p2Exposure: decoded.p2Exposure,
+        p2Exposure: p2Exposure,
         participantId: prolificPID || jsPsych.data.getURLVariable('participant_id') || `P${Date.now()}`,
         studyId: studyID || null,
         sessionId: sessionID || null
@@ -333,81 +397,71 @@ export function getURLParams(jsPsych) {
 }
 
 /**
- * Generate trials for Phase 2 (the partner choice task).
+ * Generate trials for Phase 2 (single-face approach-avoidance slider).
  *
- * Phase 2 tests whether the participant's exposure to red vs. blue faces
- * in Phase 1 influenced their preferences. On each trial, the participant
- * sees 4 faces and chooses one as a "partner" — but this time there are no
- * rewards or punishments. The key variable is the color composition of the
- * 4 faces shown.
+ * Phase 2 presents novel faces (never seen in Phase 1) one at a time.
+ * The participant rates each face on a continuous approach-avoidance slider
+ * using jsPsych's html-slider-response plugin. No feedback is provided.
  *
- * The experiment uses 5 different compositions (set in CONFIG.PHASE2_COMPOSITIONS):
- *   - 4 red, 0 blue
- *   - 3 red, 1 blue
- *   - 2 red, 2 blue
- *   - 1 red, 3 blue
- *   - 0 red, 4 blue
+ * The number of red vs. blue novel faces shown is determined by the Phase 2
+ * exposure condition (urlParams.p2Exposure) and PHASE2_EXPOSURE_RATIOS in
+ * config. During pilot mode this is always 'equal' (50/50).
  *
- * For each composition, multiple trials are created (default: 5 per
- * composition, set by CONFIG.PHASE2_TRIALS_PER_COMPOSITION), giving a total
- * of 25 trials. Faces are randomly sampled for each trial without
- * replacement (no duplicate faces within a single trial).
- *
- * All 25 trials are shuffled into a random order before being returned so
- * the participant doesn't see all trials of the same composition back-to-back.
+ * Novel faces also carry a hidden good/bad label (same ratio as Phase 1).
+ * This status is NOT revealed during Phase 2 — it is only used for backend
+ * scoring displayed at the very end of the experiment.
  *
  * Each trial object looks like:
  *   {
- *     faces: [...],                   // array of 4 face objects
- *     composition: { red: 3, blue: 1 }, // the red:blue ratio for this trial
- *     phase: 2                        // identifies this as a Phase 2 trial
+ *     face: { id: 'n042', color: 'red', imagePath: '...', isGood: true },
+ *     phase: 2
  *   }
  *
- * @param {Array<object>} faces - All 100 face objects from generateFaces().
+ * @param {Array<object>} novelFaces - Novel face objects from generateNovelFaces().
+ * @param {object} urlParams - Parsed URL parameters; p2Exposure determines
+ *   the red:blue ratio of novel faces shown.
  * @param {object} jsPsych - The jsPsych instance, used for randomization.
- * @returns {Array<object>} A shuffled array of 25 trial objects.
+ * @returns {Array<object>} A shuffled array of trial objects (one face per trial).
  */
-export function generatePhase2Trials(faces, jsPsych) {
-    const trials = [];
+export function generatePhase2Trials(novelFaces, urlParams, jsPsych) {
+    const totalTrials = CONFIG.PHASE2_TOTAL_TRIALS;
+    const ratios = CONFIG.PHASE2_EXPOSURE_RATIOS[urlParams.p2Exposure] || CONFIG.PHASE2_EXPOSURE_RATIOS['equal'];
+    const redCount = Math.round(totalTrials * ratios.red);
+    const blueCount = totalTrials - redCount;
 
-    // For each composition (4:0, 3:1, 2:2, 1:3, 0:4)
-    CONFIG.PHASE2_COMPOSITIONS.forEach(composition => {
-        // Create PHASE2_TRIALS_PER_COMPOSITION trials for this composition
-        for (let i = 0; i < CONFIG.PHASE2_TRIALS_PER_COMPOSITION; i++) {
-            const redFaces = faces.filter(f => f.color === 'red');
-            const blueFaces = faces.filter(f => f.color === 'blue');
+    const redPool = novelFaces.filter(f => f.color === 'red');
+    const bluePool = novelFaces.filter(f => f.color === 'blue');
 
-            // Sample faces without replacement
-            const selectedRed = jsPsych.randomization.sampleWithoutReplacement(redFaces, composition.red);
-            const selectedBlue = jsPsych.randomization.sampleWithoutReplacement(blueFaces, composition.blue);
+    // Sample without replacement when pool is large enough, otherwise with replacement
+    const selectedRed = redCount <= redPool.length
+        ? jsPsych.randomization.sampleWithoutReplacement(redPool, redCount)
+        : jsPsych.randomization.sampleWithReplacement(redPool, redCount);
 
-            const trialFaces = jsPsych.randomization.shuffle([...selectedRed, ...selectedBlue]);
+    const selectedBlue = blueCount <= bluePool.length
+        ? jsPsych.randomization.sampleWithoutReplacement(bluePool, blueCount)
+        : jsPsych.randomization.sampleWithReplacement(bluePool, blueCount);
 
-            trials.push({
-                faces: trialFaces,
-                composition: composition,
-                phase: 2
-            });
-        }
-    });
+    const selectedFaces = jsPsych.randomization.shuffle([...selectedRed, ...selectedBlue]);
 
-    // Shuffle all trials
-    return jsPsych.randomization.shuffle(trials);
+    return selectedFaces.map(face => ({
+        face: face,
+        phase: 2
+    }));
 }
 
 /**
  * Generate trials for Phase 3 (post-task rating).
  *
- * Phase 3 is the final measurement phase. The participant is shown every
- * face they encountered during Phase 1 and Phase 2, one at a time, and
- * asked to rate each one twice:
+ * Phase 3 is the final measurement phase. The participant is shown faces
+ * they encountered during **Phase 1 only** (not Phase 2 novel faces),
+ * one at a time, and asked to rate each one twice:
  *
  *   1. **Good/Bad rating** — "Do you think this person is good or bad?"
  *   2. **Confidence rating** — "How confident are you in that judgment?"
  *
  * How it works:
- *   - The function collects every unique face ID that appeared in any
- *     Phase 1 or Phase 2 trial (using a Set to avoid duplicates).
+ *   - The function collects every unique face ID that appeared in Phase 1
+ *     trials (using a Set to avoid duplicates).
  *   - It looks up the full face objects for those IDs.
  *   - The faces are shuffled into a random order.
  *   - For each face, two back-to-back trial objects are created: first the
@@ -422,27 +476,17 @@ export function generatePhase2Trials(faces, jsPsych) {
  *
  * @param {Array<object>} phase1Trials - The array of Phase 1 trial objects
  *   returned by generateTrials(). Each must have a `faces` array.
- * @param {Array<object>} phase2Trials - The array of Phase 2 trial objects
- *   returned by generatePhase2Trials(). Each must have a `faces` array.
  * @param {Array<object>} faces - All 100 face objects from generateFaces(),
  *   used to look up full face data by ID.
  * @param {object} jsPsych - The jsPsych instance, used for randomization.
  * @returns {Array<object>} An array of trial objects — two per unique face
  *   (one 'goodbad' and one 'confidence'), with faces in shuffled order.
  */
-export function generatePhase3Trials(phase1Trials, phase2Trials, faces, jsPsych) {
-    // Collect all unique face IDs from Phase 1 and Phase 2
+export function generatePhase3Trials(phase1Trials, faces, jsPsych) {
+    // Collect all unique face IDs from Phase 1 only
     const shownFaceIds = new Set();
 
-    // Add faces from Phase 1
     phase1Trials.forEach(trial => {
-        trial.faces.forEach(face => {
-            shownFaceIds.add(face.id);
-        });
-    });
-
-    // Add faces from Phase 2
-    phase2Trials.forEach(trial => {
         trial.faces.forEach(face => {
             shownFaceIds.add(face.id);
         });

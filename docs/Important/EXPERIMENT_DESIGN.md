@@ -1,6 +1,6 @@
 # Study 1 Pilot — Experiment Design
 
-> **Status:** Pre-pilot | **Last updated:** 2026-02-08
+> **Status:** Pre-pilot | **Last updated:** 2026-02-10
 >
 > This document describes the design of **Study 1 (pilot)**, which tests whether differential exposure to social group members shapes approach-avoidance generalizations toward novel individuals from those groups.
 
@@ -20,17 +20,18 @@ Participants who are repeatedly exposed to members of one group (vs. balanced ex
 
 | Component | Description |
 |---|---|
-| **Phases** | Phase 1 (Learning) + Phase 2 (Generalization Test) + Phase 3 (Explicit Rating, TBD) |
-| **Between-subjects factors** | Phase 1 Exposure (3) x Phase 1 Type (2) x Phase 2 Exposure (3) = 18 conditions |
+| **Phases** | Phase 1 (Learning) + Phase 2 (Generalization Test) + Phase 3 (Explicit Rating, tentative) |
+| **Full design** | Phase 1 Exposure (3) x Phase 1 Type (2) x Phase 2 Exposure (3) = 18 conditions |
+| **Pilot design** | Phase 1 Exposure (3) x Phase 1 Type (2) = **6 conditions** (Phase 2 exposure fixed to Equal) |
 | **Platform** | Online (Prolific), built with jsPsych 8.2 |
 | **Estimated duration** | 20–25 minutes |
-| **Compensation** | TBD (points-to-money conversion rate not yet set) |
+| **Compensation** | $15/hour + performance-related compensation (points to reward rate: 100 points = 1 dollar) |
 
 ---
 
 ## Experimental Conditions
 
-The study uses a **3 x 2 x 3 fully crossed between-subjects design**.
+The full study uses a **3 x 2 x 3 fully crossed between-subjects design**. For the **pilot**, Phase 2 Exposure is fixed to Equal, yielding a **3 x 2 design** (6 active conditions). The full 18-condition codebook is retained in the codebase and can be re-enabled by setting `PILOT_MODE: false` in `config.js`.
 
 ### Factor 1 — Phase 1 Exposure (3 levels)
 
@@ -55,40 +56,42 @@ Whether participants learn through experience or receive explicit information.
 
 > **Implementation:** Both conditions use the same trial structure (4-face grid → click → feedback). The difference is in the feedback screen: experimental shows only the chosen face's outcome; control shows all 4 faces in a grid with their outcomes displayed.
 
-### Factor 3 — Phase 2 Exposure (3 levels)
+### Factor 3 — Phase 2 Exposure (3 levels) — *Disabled during pilot*
 
 The group composition of novel faces presented during the generalization test (Phase 2).
 
-| Level | Novel face composition |
-|---|---|
-| **Equal** | 50% red novel faces, 50% blue novel faces |
-| **Majority-Red** | More red novel faces than blue |
-| **Majority-Blue** | More blue novel faces than red |
+| Level | Novel face composition | Pilot status |
+|---|---|---|
+| **Equal** | 50% red novel faces, 50% blue novel faces | **Active** |
+| **Majority-Red** | More red novel faces than blue | Disabled (`PILOT_MODE: true`) |
+| **Majority-Blue** | More blue novel faces than red | Disabled (`PILOT_MODE: true`) |
 
 > This factor tests whether the composition of the generalization context (Phase 2) interacts with prior learning (Phase 1). For example, does a participant who saw mostly red faces in Phase 1 behave differently when Phase 2 also presents mostly red vs. mostly blue novel faces?
+>
+> **Pilot note:** During the pilot, `PILOT_MODE: true` forces Phase 2 exposure to Equal regardless of the 3rd character in the condition code. This simplifies the pilot to 6 effective conditions while retaining the full 18-condition infrastructure for later use.
 
 ### Full Condition Matrix (18 conditions)
 
-| # | Code | Phase 1 Exposure | Phase 1 Type | Phase 2 Exposure |
-|---|---|---|---|---|
-| 1 | `EXE` | Equal | Experimental | Equal |
-| 2 | `EXR` | Equal | Experimental | Majority-Red |
-| 3 | `EXB` | Equal | Experimental | Majority-Blue |
-| 4 | `ECE` | Equal | Control | Equal |
-| 5 | `ECR` | Equal | Control | Majority-Red |
-| 6 | `ECB` | Equal | Control | Majority-Blue |
-| 7 | `RXE` | Majority-Red | Experimental | Equal |
-| 8 | `RXR` | Majority-Red | Experimental | Majority-Red |
-| 9 | `RXB` | Majority-Red | Experimental | Majority-Blue |
-| 10 | `RCE` | Majority-Red | Control | Equal |
-| 11 | `RCR` | Majority-Red | Control | Majority-Red |
-| 12 | `RCB` | Majority-Red | Control | Majority-Blue |
-| 13 | `BXE` | Majority-Blue | Experimental | Equal |
-| 14 | `BXR` | Majority-Blue | Experimental | Majority-Red |
-| 15 | `BXB` | Majority-Blue | Experimental | Majority-Blue |
-| 16 | `BCE` | Majority-Blue | Control | Equal |
-| 17 | `BCR` | Majority-Blue | Control | Majority-Red |
-| 18 | `BCB` | Majority-Blue | Control | Majority-Blue |
+| # | Code | Phase 1 Exposure | Phase 1 Type | Phase 2 Exposure | Pilot status |
+|---|---|---|---|---|---|
+| 1 | `EXE` | Equal | Experimental | Equal | **Active** |
+| 2 | `EXR` | Equal | Experimental | Majority-Red | Disabled (→ Equal) |
+| 3 | `EXB` | Equal | Experimental | Majority-Blue | Disabled (→ Equal) |
+| 4 | `ECE` | Equal | Control | Equal | **Active** |
+| 5 | `ECR` | Equal | Control | Majority-Red | Disabled (→ Equal) |
+| 6 | `ECB` | Equal | Control | Majority-Blue | Disabled (→ Equal) |
+| 7 | `RXE` | Majority-Red | Experimental | Equal | **Active** |
+| 8 | `RXR` | Majority-Red | Experimental | Majority-Red | Disabled (→ Equal) |
+| 9 | `RXB` | Majority-Red | Experimental | Majority-Blue | Disabled (→ Equal) |
+| 10 | `RCE` | Majority-Red | Control | Equal | **Active** |
+| 11 | `RCR` | Majority-Red | Control | Majority-Red | Disabled (→ Equal) |
+| 12 | `RCB` | Majority-Red | Control | Majority-Blue | Disabled (→ Equal) |
+| 13 | `BXE` | Majority-Blue | Experimental | Equal | **Active** |
+| 14 | `BXR` | Majority-Blue | Experimental | Majority-Red | Disabled (→ Equal) |
+| 15 | `BXB` | Majority-Blue | Experimental | Majority-Blue | Disabled (→ Equal) |
+| 16 | `BCE` | Majority-Blue | Control | Equal | **Active** |
+| 17 | `BCR` | Majority-Blue | Control | Majority-Red | Disabled (→ Equal) |
+| 18 | `BCB` | Majority-Blue | Control | Majority-Blue | Disabled (→ Equal) |
 
 ### Condition Code Scheme
 
@@ -99,6 +102,8 @@ Conditions are assigned via a single URL parameter `?c=<CODE>` (e.g., `?c=RXB`).
 - **3rd character** — Phase 2 Exposure: `E` (Equal), `R` (Red-majority), `B` (Blue-majority)
 
 These codes are opaque to participants (a participant seeing `?c=RXB` cannot infer the manipulation) but immediately decodable by the research team. The full codebook is defined in `src/utils/config.js` → `CONFIG.CONDITION_CODES`.
+
+> **Pilot note:** During the pilot, the 3rd character is effectively ignored — all participants receive Equal Phase 2 exposure. Any of the 18 codes will work, but `EXE`, `ECE`, `RXE`, `RCE`, `BXE`, `BCE` are the 6 canonical pilot codes.
 
 ### Informedness (Removed)
 
@@ -165,11 +170,11 @@ In the **Equal** condition, each block contains 50 red and 50 blue faces. In the
 
 ## Phase 2 — Generalization Test (Approach-Avoidance Slider)
 
-> **Important:** The current codebase implements an earlier "partner choice" design (4-face selection across 5 composition ratios, 25 trials) that was originally intended for Study 2. Study 1 uses the slider design described below. **The codebase needs to be updated to match this design.**
-
 ### What the Participant Experiences
 
-On each trial, the participant sees a **single novel face** (never encountered in Phase 1) with either a red or blue background. They indicate how willing they are to approach or avoid this person using a **continuous slider**.
+On each trial, the participant sees a **single novel face** (never encountered in Phase 1) with either a red or blue background. They indicate how willing they are to approach or avoid this person using a **continuous slider** (`@jspsych/plugin-html-slider-response`). No feedback is provided during the trial.
+
+Novel faces carry a hidden good/bad label (same 80:20 ratio as Phase 1). This label determines a hidden outcome (+1 or -5) for each trial using the same reward probabilities as Phase 1. **These outcomes are not shown to participants during Phase 2** — they are accumulated silently and only revealed as a combined Phase 2 score at the end of the experiment.
 
 ### Trial Structure
 
@@ -177,20 +182,21 @@ On each trial, the participant sees a **single novel face** (never encountered i
 ┌─────────────────────────────────────┐
 │         [Novel Face]                │  ← single face, red or blue background
 │                                     │
-│   Avoid ◄━━━━━━━━●━━━━━━━► Approach │  ← continuous slider
+│   Avoid ◄━━━━━━━━●━━━━━━━► Approach │  ← continuous slider (0–100)
 │                                     │
+│              [Submit]               │
 └─────────────────────────────────────┘
 ```
 
-### Phase 2 Exposure Manipulation
+### Phase 2 Exposure Manipulation — *Equal only during pilot*
 
-The group composition of novel faces in Phase 2 is a **between-subjects factor** (Factor 3). This creates a crossed design with Phase 1 exposure, allowing the study to test whether the generalization context matters:
+The group composition of novel faces in Phase 2 is a **between-subjects factor** (Factor 3). During the pilot, only the Equal condition is active (`PILOT_MODE: true`). The full manipulation can be re-enabled for the main study.
 
-| Phase 2 Level | Novel face composition | Example research question |
-|---|---|---|
-| **Equal** | 50/50 red and blue | Does Phase 1 learning transfer when the test environment is balanced? |
-| **Majority-Red** | More red novel faces | Does congruence with Phase 1 majority amplify or attenuate generalization? |
-| **Majority-Blue** | More blue novel faces | Does incongruence with Phase 1 majority change generalization patterns? |
+| Phase 2 Level | Novel face composition | Example research question | Pilot |
+|---|---|---|---|
+| **Equal** | 50/50 red and blue (30 each) | Does Phase 1 learning transfer when the test environment is balanced? | **Active** |
+| **Majority-Red** | More red novel faces | Does congruence with Phase 1 majority amplify or attenuate generalization? | Disabled |
+| **Majority-Blue** | More blue novel faces | Does incongruence with Phase 1 majority change generalization patterns? | Disabled |
 
 ### Design Rationale
 
@@ -201,34 +207,32 @@ By presenting a single novel face per trial (rather than a set of faces to choos
 | Parameter | Current value | Subject to change? | Notes |
 |---|---|---|---|
 | Faces per trial | 1 (novel) | No | Core to the slider design |
-| Response type | Continuous slider | No | Approach-avoidance scale |
-| Trial count | 50 (adjustable: 40–60) | **Yes** | Configured via `PHASE2_TOTAL_TRIALS` in config.js |
-| Novel face pool size | 120 (60 per color) | **Yes** | Sample without replacement; buffer allows stimulus variability |
+| Response type | Continuous slider (0–100) | No | `@jspsych/plugin-html-slider-response`; labels: Avoid / Neutral / Approach; starts at 50; requires movement |
+| Trial count | 60 | **Yes** | Configured via `PHASE2_TOTAL_TRIALS` in config.js |
+| Novel face pool size | 120 (60 per color) | Unlikely | Generated via FaceGen; stored as `face_nXXX_red.png` / `face_nXXX_blue.png` |
 | Phase 2 exposure ratios | Equal: 50/50, Majority: 80/20 | Unlikely | Mirrors Phase 1 ratios; configured in `PHASE2_EXPOSURE_RATIOS` |
-| Feedback | None | Unlikely | No reward/punishment in Phase 2 |
-| Slider anchoring and scale | TBD | **Yes** | Endpoint wording, range (0–100?), starting position |
+| Hidden scoring | Same good/bad probabilities as Phase 1 | Unlikely | Outcome accumulated silently; shown at experiment end |
+| Feedback | None during trials | Unlikely | Score revealed only at end of experiment |
 
 ### Trial Breakdown by Phase 2 Exposure Level
 
-With 50 total trials (default):
+With 60 total trials (default):
 
 | P2 Exposure Level | Red faces | Blue faces | Min per-color obs |
 |---|---|---|---|
-| Equal | 25 | 25 | 25 |
-| Majority-Red | 40 | 10 | 10 |
-| Majority-Blue | 10 | 40 | 10 |
-
-The 10 minority-color observations at 80/20 is the practical minimum for a stable within-person slider mean. Increasing to 60 trials yields 12 minority-color observations.
+| Equal (pilot) | 30 | 30 | 30 |
+| Majority-Red | 48 | 12 | 12 |
+| Majority-Blue | 12 | 48 | 12 |
 
 ---
 
-## Phase 3 — Explicit Rating (Inclusion TBD)
+## Phase 3 — Explicit Rating (Tentatively included in pilot)
 
-> **Status:** Phase 3 is currently implemented but its inclusion in the pilot is **under discussion**. It provides additional explicit attitude data but adds experiment time.
+> **Status:** Phase 3 is currently implemented. It is tentatively included in the pilot but only rates faces shown in **Phase 1** (not Phase 2 novel faces).
 
 ### What the Participant Experiences
 
-The participant is shown every face they encountered during Phases 1 and 2, one at a time, and answers two questions per face:
+The participant is shown every face they encountered during **Phase 1 only**, one at a time, and answers two questions per face:
 
 1. **Good/Bad judgment:** "Do you think this person is good or bad?" (binary choice)
 2. **Confidence rating:** "How confident are you in that judgment?" (6-point scale: Very unconfident → Very confident)
@@ -237,9 +241,9 @@ The participant is shown every face they encountered during Phases 1 and 2, one 
 
 | Parameter | Current value | Subject to change? | Notes |
 |---|---|---|---|
-| Faces rated | All unique faces from Phases 1 & 2 | Unlikely | |
+| Faces rated | All unique faces from Phase 1 only | **Yes** | Phase 2 novel faces excluded for pilot |
 | Trials per face | 2 (good/bad + confidence) | Unlikely | |
-| Total Phase 3 trials | ~200 (depends on unique face count) | Dependent on Phase 2 design | |
+| Total Phase 3 trials | ~200 (depends on unique face count) | Dependent on Phase 1 design | |
 | Confidence scale | 6-point Likert | Unlikely | |
 
 ---
@@ -248,11 +252,19 @@ The participant is shown every face they encountered during Phases 1 and 2, one 
 
 ### Face Stimuli
 
+**Phase 1 (base faces):**
 - **Generator:** FaceGen
-- **Current pool:** 100 unique face identities, each rendered twice (red background and blue background) = 200 image files
+- **Pool:** 100 unique face identities, each rendered with red and blue backgrounds = 200 image files
 - **Format:** PNG, named `face_XXX_red.png` / `face_XXX_blue.png` (XXX = 000–099)
+- **Location:** `stimuli/faces/`
 - **Assignment:** Each face identity is randomly assigned to exactly one group (red or blue) per participant. No face appears in both groups within the same session.
-- **Phase 2 requirement:** Additional novel face identities need to be generated (count TBD)
+
+**Phase 2 (novel faces):**
+- **Generator:** FaceGen
+- **Pool:** 120 unique novel face identities, each rendered with red and blue backgrounds = 240 image files
+- **Format:** PNG, named `face_nXXX_red.png` / `face_nXXX_blue.png` (XXX = 001–120)
+- **Location:** `stimuli/faces/`
+- **Assignment:** Randomly assigned to red or blue (60 per group) per participant, same as Phase 1. Each novel face also receives a hidden good/bad label (same 80:20 ratio).
 
 ### Group Membership Cues
 
@@ -268,7 +280,7 @@ Group membership is indicated by the face's **background color** (red or blue). 
 |---|---|---|
 | Phase 1 | Face chosen per trial | Categorical (which of 4 faces) |
 | Phase 1 | Reaction time | Continuous (ms) |
-| Phase 2 | Approach-avoidance slider rating per novel face | Continuous |
+| Phase 2 | Approach-avoidance slider rating per novel face | Continuous (0–100) |
 | Phase 3 | Good/bad judgment per face | Binary |
 | Phase 3 | Confidence in judgment | Ordinal (1–6) |
 
@@ -295,12 +307,11 @@ The following parameters are flagged for potential revision before or after the 
 | Bad person P(reward) | 0.5 | Tied to diagnosticity |
 | Interaction framing | "Choose a person to interact with" | Approach/avoid vs. help/hurt wording |
 | Control feedback duration | 1000ms (same as experimental) | May need longer for participants to process 4 outcomes |
-| Phase 2 trial count | 50 (adjustable: 40–60) | Configurable via `PHASE2_TOTAL_TRIALS` |
-| Phase 2 novel face pool | 120 (60 per color) | Additional faces need to be generated |
-| Phase 2 exposure ratios | Equal: 50/50, Majority: 80/20 | Mirrors Phase 1 ratios |
-| Phase 3 inclusion | Currently included | May be dropped if experiment time is too long |
-| Sample size | TBD | Power analysis needed (18 cells requires careful planning) |
-| Points-to-money conversion | TBD | Incentive structure |
+| Phase 2 trial count | 60 | Configurable via `PHASE2_TOTAL_TRIALS` |
+| Phase 2 exposure manipulation | Equal only (pilot) | Re-enable via `PILOT_MODE: false` for main study |
+| Phase 3 inclusion | Tentatively included (Phase 1 faces only) | May be dropped if experiment time is too long |
+| Points-to-money conversion | 100 points = $1 | `POINTS_TO_DOLLARS` in config.js; subject to change |
+| Sample size | TBD | Power analysis needed (6 pilot cells; 18 full-study cells) |
 | Analysis model | TBD | Mixed/conditional logit vs. logistic GLMM |
 
 ---
@@ -315,7 +326,7 @@ The following parameters are flagged for potential revision before or after the 
 | Recruitment | Prolific |
 | Condition assignment | Encoded URL parameter (`?c=<CODE>`) |
 | Condition codebook | `src/utils/config.js` → `CONFIG.CONDITION_CODES` |
-| Custom plugins | `plugin-image-multi-choice` (Phase 1 & current Phase 2) |
+| Plugins | `plugin-image-multi-choice` (Phase 1), `@jspsych/plugin-html-slider-response` (Phase 2) |
 | Export | Python and R scripts to CSV |
 
 ### URL Format
@@ -332,4 +343,4 @@ https://localhost:8080/?c=RXB&debug=true&autoclick=true
 
 ## Appendix: Relationship to Study 2
 
-The current codebase contains an earlier Phase 2 implementation (a "partner choice" task where participants choose one face from a grid of 4 faces presented in varying red:blue compositions — 4:0, 3:1, 2:2, 1:3, 0:4). This design is intended for **Study 2**, which will examine group-composition effects on partner selection in a multi-option context. Study 1 instead uses the single-face slider design described above to isolate group-level approach-avoidance tendencies.
+The codebase previously contained an earlier Phase 2 implementation (a "partner choice" task where participants choose one face from a grid of 4 faces presented in varying red:blue compositions — 4:0, 3:1, 2:2, 1:3, 0:4). This design is intended for **Study 2**, which will examine group-composition effects on partner selection in a multi-option context. Study 1 now uses the single-face slider design described above to isolate group-level approach-avoidance tendencies.
