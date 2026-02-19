@@ -28,40 +28,18 @@ const DEMO_CONFIG = {
 /**
  * Generate simplified Phase 1 trials for demo
  */
-function generateDemoPhase1Trials(faces, urlParams, jsPsych) {
+function generateDemoPhase1Trials(faces, jsPsych) {
     const trials = [];
 
-    // Determine exposure ratio based on condition
-    let redExposureRatio, blueExposureRatio;
-    if (urlParams.condition === 'equal') {
-        redExposureRatio = 0.5;
-        blueExposureRatio = 0.5;
-    } else {
-        if (urlParams.majorityGroup === 'red') {
-            redExposureRatio = 0.8;
-            blueExposureRatio = 0.2;
-        } else {
-            redExposureRatio = 0.2;
-            blueExposureRatio = 0.8;
-        }
-    }
-
-    // Generate 5 simple trials
+    // Generate PHASE1_TRIALS simple trials by sampling without replacement from
+    // the pre-coloured face pool (color split already set by generateFaces).
     for (let i = 0; i < DEMO_CONFIG.PHASE1_TRIALS; i++) {
-        const redCount = Math.round(CONFIG.FACES_PER_TRIAL * redExposureRatio);
-        const blueCount = CONFIG.FACES_PER_TRIAL - redCount;
-
-        const redFaces = faces.filter(f => f.color === 'red');
-        const blueFaces = faces.filter(f => f.color === 'blue');
-
-        const selectedRed = jsPsych.randomization.sampleWithoutReplacement(redFaces, redCount);
-        const selectedBlue = jsPsych.randomization.sampleWithoutReplacement(blueFaces, blueCount);
-
-        const trialFaces = jsPsych.randomization.shuffle([...selectedRed, ...selectedBlue]);
-
+        const trialFaces = jsPsych.randomization.sampleWithoutReplacement(
+            faces, CONFIG.FACES_PER_TRIAL
+        );
         trials.push({
             trialNum: i + 1,
-            faces: trialFaces
+            faces: jsPsych.randomization.shuffle(trialFaces)
         });
     }
 
@@ -121,11 +99,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     const urlParams = getURLParams(jsPsych);
 
     // Generate faces and assign good/bad
-    let faces = generateFaces();
+    let faces = generateFaces(jsPsych, urlParams);
     faces = assignGoodBad(faces, jsPsych);
 
     // Generate demo trials
-    const phase1Trials = generateDemoPhase1Trials(faces, urlParams, jsPsych);
+    const phase1Trials = generateDemoPhase1Trials(faces, jsPsych);
     const phase2Trials = generateDemoPhase2Trials(faces, jsPsych);
 
     // Track scores

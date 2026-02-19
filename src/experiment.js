@@ -104,7 +104,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     }
 
     // Generate faces and assign good/bad
-    let faces = generateFaces(jsPsych);
+    let faces = generateFaces(jsPsych, urlParams);
     faces = assignGoodBad(faces, jsPsych);
 
     // If debug mode, use only a subset of faces for faster testing
@@ -122,7 +122,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         CONFIG.EXPOSURES_PER_FACE = 1;
         console.log('Debug mode: Reduced Phase 1 to 1 exposure per face');
     }
-    const trials = generateTrials(faces, urlParams, jsPsych);
+    const trials = generateTrials(faces, jsPsych);
     CONFIG.EXPOSURES_PER_FACE = originalExposures; // Restore original value
 
     // Track score
