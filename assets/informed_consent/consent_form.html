@@ -6,7 +6,9 @@
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            max-width: 800px;
+        }
+        .consent-wrapper {
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -19,6 +21,22 @@
             color: #555;
             margin-top: 20px;
         }
+        p.instructions {
+            color: #555;
+            font-style: italic;
+        }
+        .consent-iframe-container {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .consent-iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
         .consent-box {
             background-color: #f9f9f9;
             border: 2px solid #ddd;
@@ -28,6 +46,7 @@
         .button-container {
             text-align: center;
             margin-top: 30px;
+            margin-bottom: 30px;
         }
         #start {
             background-color: #4CAF50;
@@ -48,83 +67,22 @@
     </style>
 </head>
 <body>
+<div class="consent-wrapper">
     <h1>Informed Consent Form</h1>
+    <p class="instructions">Please scroll through and read the entire consent form below before proceeding.</p>
 
-    <h2>Study Title: Social Exposure Theory Experiment</h2>
-
-    <p><strong>Principal Investigator:</strong> [TO BE FILLED IN]</p>
-    <p><strong>Institution:</strong> [TO BE FILLED IN]</p>
-    <p><strong>Contact:</strong> [TO BE FILLED IN]</p>
-
-    <h2>Purpose of the Study</h2>
-    <p>
-        You are invited to participate in a research study investigating social decision-making and learning.
-        The purpose of this study is to understand how people make choices in social contexts.
-    </p>
-
-    <h2>Procedures</h2>
-    <p>
-        If you agree to participate, you will:
-    </p>
-    <ul>
-        <li>Complete a demographic questionnaire (approximately 5 minutes)</li>
-        <li>View images of faces and make choices by clicking on them (approximately 15-20 minutes)</li>
-        <li>Receive feedback based on your choices</li>
-    </ul>
-    <p>
-        The entire study should take approximately 20-25 minutes to complete.
-    </p>
-
-    <h2>Risks and Benefits</h2>
-    <p>
-        <strong>Risks:</strong> The risks associated with this study are minimal and no greater than those
-        encountered in daily life. You may experience mild fatigue from viewing computer screens.
-    </p>
-    <p>
-        <strong>Benefits:</strong> There are no direct benefits to you from participating in this study.
-        However, your participation will contribute to scientific understanding of social decision-making.
-    </p>
-
-    <h2>Compensation</h2>
-    <p>
-        You will receive [COMPENSATION AMOUNT] for completing this study. If you withdraw early,
-        you will be compensated proportionally for the time spent.
-    </p>
-
-    <h2>Confidentiality</h2>
-    <p>
-        Your responses will be kept confidential. All data will be stored securely and identified only
-        by a randomly assigned participant ID number. Your personal information will not be linked to
-        your responses.
-    </p>
-
-    <h2>Voluntary Participation</h2>
-    <p>
-        Your participation in this study is completely voluntary. You may withdraw at any time without
-        penalty. You may also skip any questions you do not wish to answer.
-    </p>
-
-    <h2>Questions or Concerns</h2>
-    <p>
-        If you have questions about this study, please contact [RESEARCHER NAME] at [EMAIL].
-        If you have questions about your rights as a research participant, please contact
-        [IRB CONTACT INFORMATION].
-    </p>
+    <div class="consent-iframe-container">
+        <iframe src="assets/informed_consent/consent_form/consent_form_adapted.html"
+                title="Informed Consent Form"
+                scrolling="yes">
+        </iframe>
+    </div>
 
     <div class="consent-box">
         <h2>Statement of Consent</h2>
+        <p>By checking the box below, I acknowledge that I have read and understood the consent form above and voluntarily agree to participate in this study.</p>
         <p>
-            By checking the box below, I acknowledge that:
-        </p>
-        <ul>
-            <li>I have read and understood the information provided above</li>
-            <li>I have had the opportunity to ask questions</li>
-            <li>I voluntarily agree to participate in this study</li>
-            <li>I am at least 18 years of age</li>
-        </ul>
-
-        <p>
-            <input type="checkbox" id="consent_checkbox" name="consent_checkbox" required />
+            <input type="checkbox" id="consent_checkbox" name="consent_checkbox" />
             <label for="consent_checkbox"><strong>I agree to participate in this study.</strong></label>
         </p>
     </div>
@@ -132,6 +90,6 @@
     <div class="button-container">
         <button type="button" id="start">Continue to Study</button>
     </div>
-
+</div>
 </body>
 </html>
