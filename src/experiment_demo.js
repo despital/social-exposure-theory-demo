@@ -1,7 +1,7 @@
 /**
  * @title Social Exposure Theory Experiment - DEMO VERSION
- * @description Simplified demo for supervisor review (5 Phase 1 trials + 5 Phase 2 trials)
- * @version 1.0.0-demo
+ * @description In-lab demo showcasing the pilot design (5 trials per phase).
+ * @version 2.0.0-demo
  */
 
 // Import styles
@@ -11,82 +11,28 @@ import "jspsych/css/jspsych.css";
 // Import jsPsych and plugins
 import { initJsPsych } from "jspsych";
 import HtmlKeyboardResponsePlugin from "@jspsych/plugin-html-keyboard-response";
+import HtmlSliderResponsePlugin from "@jspsych/plugin-html-slider-response";
 import ImageMultiChoicePlugin from "./plugins/plugin-image-multi-choice.js";
 
 // Import utilities
 import { CONFIG } from "./utils/config.js";
-import { generateFaces, assignGoodBad, getOutcome, getURLParams } from "./utils/helpers.js";
+import {
+    generateFaces,
+    assignGoodBad,
+    generateTrials,
+    getOutcome,
+    getURLParams,
+    generateNovelFaces,
+    generatePhase2Trials,
+    generatePhase3Trials
+} from "./utils/helpers.js";
 
-/**
- * DEMO CONFIGURATION - Override config values for quick demo
- */
-const DEMO_CONFIG = {
-    PHASE1_TRIALS: 5,  // Only 5 trials for Phase 1
-    PHASE2_TRIALS: 5   // Only 5 trials for Phase 2
-};
-
-/**
- * Generate simplified Phase 1 trials for demo
- */
-function generateDemoPhase1Trials(faces, jsPsych) {
-    const trials = [];
-
-    // Generate PHASE1_TRIALS simple trials by sampling without replacement from
-    // the pre-coloured face pool (color split already set by generateFaces).
-    for (let i = 0; i < DEMO_CONFIG.PHASE1_TRIALS; i++) {
-        const trialFaces = jsPsych.randomization.sampleWithoutReplacement(
-            faces, CONFIG.FACES_PER_TRIAL
-        );
-        trials.push({
-            trialNum: i + 1,
-            faces: jsPsych.randomization.shuffle(trialFaces)
-        });
-    }
-
-    return trials;
-}
-
-/**
- * Generate simplified Phase 2 trials for demo
- */
-function generateDemoPhase2Trials(faces, jsPsych) {
-    const trials = [];
-    const compositions = [
-        { red: 4, blue: 0 },
-        { red: 3, blue: 1 },
-        { red: 2, blue: 2 },
-        { red: 1, blue: 3 },
-        { red: 0, blue: 4 }
-    ];
-
-    const redFaces = faces.filter(f => f.color === 'red');
-    const blueFaces = faces.filter(f => f.color === 'blue');
-
-    for (let i = 0; i < DEMO_CONFIG.PHASE2_TRIALS; i++) {
-        const composition = compositions[i];
-
-        const redSample = jsPsych.randomization.sampleWithoutReplacement(redFaces, composition.red);
-        const blueSample = jsPsych.randomization.sampleWithoutReplacement(blueFaces, composition.blue);
-
-        const trialFaces = jsPsych.randomization.shuffle([...redSample, ...blueSample]);
-
-        trials.push({
-            trialNum: i + 1,
-            composition: `${composition.red}R-${composition.blue}B`,
-            redCount: composition.red,
-            blueCount: composition.blue,
-            faces: trialFaces
-        });
-    }
-
-    return trials;
-}
+const DEMO_TRIALS_PER_PHASE = 5;
 
 /**
  * Main experiment function
  */
 export async function run({ assetPaths, input = {}, environment, title, version }) {
-    // Initialize jsPsych
     const jsPsych = initJsPsych({
         show_progress_bar: true,
         auto_update_progress_bar: false,
@@ -95,22 +41,26 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         }
     });
 
-    // Get URL parameters for condition assignment
     const urlParams = getURLParams(jsPsych);
 
-    // Generate faces and assign good/bad
+    // Generate Phase 1 faces and assign good/bad status
     let faces = generateFaces(jsPsych, urlParams);
     faces = assignGoodBad(faces, jsPsych);
 
-    // Generate demo trials
-    const phase1Trials = generateDemoPhase1Trials(faces, jsPsych);
-    const phase2Trials = generateDemoPhase2Trials(faces, jsPsych);
+    // Generate novel faces for Phase 2
+    const novelFaces = generateNovelFaces(jsPsych);
 
-    // Track scores
-    let phase1Score = 0;
+    // Generate trials (slice to 5 per phase)
+    const phase1Trials = generateTrials(faces, jsPsych).slice(0, DEMO_TRIALS_PER_PHASE);
+    const phase2Trials = generatePhase2Trials(novelFaces, urlParams, jsPsych).slice(0, DEMO_TRIALS_PER_PHASE);
+    const phase3Trials = generatePhase3Trials(phase1Trials, faces, jsPsych).slice(0, DEMO_TRIALS_PER_PHASE);
+
+    // Score and counter tracking
+    let totalScore = 0;       // Phase 1 cumulative score
     let phase2Score = 0;
     let phase1Count = 0;
-    let phase2Count = 0;
+    let phase2TrialCount = 0;
+    let phase3TrialCount = 0;
 
     console.log('DEMO Experiment initialized:', {
         conditionCode: urlParams.conditionCode,
@@ -119,7 +69,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         p1Type: urlParams.p1Type,
         p2Exposure: urlParams.p2Exposure,
         phase1Trials: phase1Trials.length,
-        phase2Trials: phase2Trials.length
+        phase2Trials: phase2Trials.length,
+        phase3Trials: phase3Trials.length
     });
 
     // ========================================================================
@@ -134,7 +85,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: `
             <h1>Social Exposure Theory Experiment</h1>
             <h2 style="color: #e74c3c;">DEMO VERSION</h2>
-            <p>This is a simplified demo with only 5 trials per phase.</p>
+            <p>This is a simplified in-lab demo with ${DEMO_TRIALS_PER_PHASE} trials per phase.</p>
+            <p style="color: #666;">Condition: ${urlParams.conditionCode} | P1: ${urlParams.p1Type} | P2 Exposure: ${urlParams.p2Exposure}</p>
             <p>Press any key to begin.</p>
         `,
         on_start: function() {
@@ -147,7 +99,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // PHASE 1: LEARNING TASK
     // ========================================================================
 
-    // Phase 1 Instructions (differ between experimental and control)
     const phase1InstructionText = urlParams.p1Type === 'control'
         ? `<div style="max-width: 800px; margin: auto; text-align: left;">
             <h2>Phase 1: Learning Task</h2>
@@ -156,7 +107,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             <p>After your choice, the reward values for <strong>all four people</strong> will be revealed.</p>
             <p>Each person can give you either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
             <p><strong>Your goal is to maximize your total score.</strong></p>
-            <p><strong>Demo:</strong> You will complete 5 trials.</p>
+            <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} trials.</em></p>
             <p>Press any key to start.</p>
         </div>`
         : `<div style="max-width: 800px; margin: auto; text-align: left;">
@@ -165,35 +116,30 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
             <p>After your choice, you will receive either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
             <p><strong>Your goal is to maximize your total score.</strong></p>
-            <p><strong>Demo:</strong> You will complete 5 trials.</p>
+            <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} trials.</em></p>
             <p>Press any key to start.</p>
         </div>`;
 
     const phase1Instructions = {
         type: HtmlKeyboardResponsePlugin,
-        stimulus: phase1InstructionText
+        stimulus: phase1InstructionText,
+        data: { task: 'phase1_instructions' }
     };
     timeline.push(phase1Instructions);
 
-    // Phase 1 Choice trial
-    const phase1ChoiceTrial = {
+    // Phase 1 choice trial
+    const choiceTrial = {
         type: ImageMultiChoicePlugin,
         images: function() {
             const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             return trialFaces.map(face => ({
                 src: face.imagePath,
                 color: face.color,
-                data: {
-                    id: face.id,
-                    isGood: face.isGood
-                }
+                data: { id: face.id, isGood: face.isGood }
             }));
         },
         prompt: function() {
-            return `
-                <div class="score-display">Phase 1 Score: ${phase1Score}</div>
-                <p>Choose a person to interact with:</p>
-            `;
+            return `<p>Choose a person to interact with by clicking on a face:</p>`;
         },
         image_width: 200,
         image_height: 200,
@@ -201,9 +147,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         gap: 20,
         data: function() {
             return {
-                task: 'phase1_choice',
+                task: 'choice',
                 phase: 1,
-                trial_num: jsPsych.evaluateTimelineVariable('trialNum')
+                block: jsPsych.evaluateTimelineVariable('block'),
+                trial_in_block: jsPsych.evaluateTimelineVariable('trialInBlock')
             };
         },
         on_finish: function(data) {
@@ -211,16 +158,15 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             const chosenFace = trialFaces[data.response];
             const outcome = getOutcome(chosenFace);
 
-            phase1Score += outcome;
+            totalScore += outcome;
             phase1Count++;
 
             data.chosen_face_id = chosenFace.id;
             data.chosen_face_color = chosenFace.color;
             data.chosen_face_is_good = chosenFace.isGood;
             data.outcome = outcome;
-            data.phase1_score = phase1Score;
+            data.total_score = totalScore;
 
-            // Control condition: compute and store outcomes for all 4 faces
             if (urlParams.p1Type === 'control') {
                 data.all_outcomes = trialFaces.map(face => ({
                     id: face.id,
@@ -230,26 +176,20 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     imagePath: face.imagePath
                 }));
             }
-
-            // Update progress
-            const progress = phase1Count / DEMO_CONFIG.PHASE1_TRIALS;
-            jsPsych.progressBar.progress = progress * 0.4; // Phase 1 is 40% of total
         }
     };
 
-    // Phase 1 Feedback trial
-    const phase1FeedbackTrial = {
+    // Phase 1 feedback trial
+    const feedbackTrial = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: function() {
             const lastTrial = jsPsych.data.get().last(1).values()[0];
             const outcome = lastTrial.outcome;
 
             if (urlParams.p1Type === 'control') {
-                // Control: show all 4 faces with their outcomes
                 const allOutcomes = lastTrial.all_outcomes;
                 const chosenIndex = lastTrial.response;
-                let html = `<div class="score-display">Phase 1 Score: ${phase1Score}</div>`;
-                html += '<div class="control-feedback-grid">';
+                let html = '<div class="control-feedback-grid">';
                 allOutcomes.forEach((face, i) => {
                     const isChosen = i === chosenIndex;
                     const feedbackClass = face.outcome > 0 ? 'positive' : 'negative';
@@ -263,146 +203,256 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 html += '</div>';
                 return html;
             } else {
-                // Experimental: single outcome
                 const feedbackClass = outcome > 0 ? 'positive' : 'negative';
                 const feedbackText = outcome > 0 ? `+${outcome}` : outcome;
                 return `
-                    <div class="score-display">Phase 1 Score: ${phase1Score}</div>
                     <div class="feedback ${feedbackClass}">
                         ${feedbackText}
                     </div>
-                    <p>Press any key to continue</p>
                 `;
             }
         },
-        trial_duration: 1500,
-        data: {
-            task: 'phase1_feedback',
-            phase: 1
+        choices: "NO_KEYS",
+        trial_duration: 1000,
+        data: { task: 'feedback', phase: 1 },
+        on_finish: function() {
+            jsPsych.progressBar.progress = (phase1Count / DEMO_TRIALS_PER_PHASE) * 0.6;
         }
     };
 
-    // Phase 1 timeline
     const phase1Timeline = {
-        timeline: [phase1ChoiceTrial, phase1FeedbackTrial],
+        timeline: [choiceTrial, feedbackTrial],
         timeline_variables: phase1Trials
     };
     timeline.push(phase1Timeline);
 
-    // Phase 1 Summary
-    const phase1Summary = {
+    // Phase 1 complete
+    const phase1Complete = {
+        type: HtmlKeyboardResponsePlugin,
+        stimulus: `
+            <h2>Phase 1 Complete!</h2>
+            <p>Great job! You've finished the first part of the experiment.</p>
+            <p>Press any key to continue.</p>
+        `,
+        post_trial_gap: 500,
+        data: { task: 'phase1_complete' }
+    };
+    timeline.push(phase1Complete);
+
+    // ========================================================================
+    // PHASE 2 BREAK (shortened to 10 s for demo)
+    // ========================================================================
+
+    let breakCountdownInterval = null;
+    const phase2BreakScreen = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: function() {
             return `
-                <h2>Phase 1 Complete!</h2>
-                <p>Your Phase 1 score: <strong>${phase1Score}</strong></p>
-                <p>Press any key to continue to Phase 2.</p>
+                <div id="break-container">
+                    <h2>Break Time!</h2>
+                    <p>You've completed Phase 1. Please take a short break before Phase 2.</p>
+                    <p>The experiment will continue in:</p>
+                    <div id="countdown-timer" style="font-size: 48px; font-weight: bold; margin: 30px 0;">10</div>
+                    <p style="color: #666;"><em>(Demo: 10 s break)</em> — or press <strong>spacebar</strong> to continue now</p>
+                </div>
             `;
         },
-        post_trial_gap: 500
+        choices: [' '],
+        trial_duration: 10000,
+        on_load: function() {
+            let timeLeft = 10;
+            const timerElement = document.getElementById('countdown-timer');
+            breakCountdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timerElement) timerElement.textContent = timeLeft;
+                if (timeLeft <= 0) clearInterval(breakCountdownInterval);
+            }, 1000);
+        },
+        on_finish: function() {
+            if (breakCountdownInterval) {
+                clearInterval(breakCountdownInterval);
+                breakCountdownInterval = null;
+            }
+        },
+        data: { task: 'phase2_break' }
     };
-    timeline.push(phase1Summary);
+    timeline.push(phase2BreakScreen);
 
     // ========================================================================
-    // PHASE 2: PARTNER CHOICE
+    // PHASE 2: APPROACH-AVOIDANCE SLIDER TASK (NOVEL FACES)
     // ========================================================================
 
-    // Phase 2 Instructions
     const phase2Instructions = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: `
             <div style="max-width: 800px; margin: auto; text-align: left;">
-                <h2>Phase 2: Partner Choice Task</h2>
-                <p>In this phase, you will see <strong>4 new faces</strong> on each trial.</p>
-                <p>Your task is to choose <strong>one person</strong> you would like to interact with.</p>
-                <p><strong>Note:</strong> You will NOT receive immediate feedback after each choice.</p>
-                <p>At the end of this phase, you will see your total score for Phase 2.</p>
-                <p><strong>Demo:</strong> You will complete 5 trials.</p>
+                <h2>Phase 2 Instructions</h2>
+                <p>In this phase, you will see <strong>new faces</strong> one at a time.</p>
+                <p>For each face, please use the slider to indicate how willing you are to <strong>approach</strong> or <strong>avoid</strong> this person.</p>
+                <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
+                <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} trials.</em></p>
                 <p>Press any key to start Phase 2.</p>
             </div>
         `,
-        data: {
-            task: 'phase2_instructions'
-        }
+        data: { task: 'phase2_instructions' }
     };
     timeline.push(phase2Instructions);
 
-    // Phase 2 Choice trial (no feedback)
-    const phase2ChoiceTrial = {
-        type: ImageMultiChoicePlugin,
-        images: function() {
-            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
-            return trialFaces.map(face => ({
-                src: face.imagePath,
-                color: face.color,
-                data: {
-                    id: face.id,
-                    isGood: face.isGood
-                }
-            }));
-        },
-        prompt: function() {
+    const phase2SliderTrial = {
+        type: HtmlSliderResponsePlugin,
+        stimulus: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
             return `
-                <p>Choose a person you would like to interact with:</p>
-                <p style="color: #666; font-size: 14px;">Trial ${phase2Count + 1} of ${DEMO_CONFIG.PHASE2_TRIALS}</p>
+                <div style="text-align: center;">
+                    <img src="${face.imagePath}"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
+                </div>
             `;
         },
-        image_width: 200,
-        image_height: 200,
-        grid_columns: 2,
-        gap: 20,
+        labels: ['Avoid', 'Neutral', 'Approach'],
+        min: 0,
+        max: 100,
+        slider_start: 50,
+        button_label: 'Submit',
+        require_movement: true,
+        prompt: '<p>How willing are you to approach or avoid this person?</p>',
         data: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
             return {
-                task: 'phase2_choice',
+                task: 'phase2_slider',
                 phase: 2,
-                trial_num: jsPsych.evaluateTimelineVariable('trialNum'),
-                composition: jsPsych.evaluateTimelineVariable('composition'),
-                red_count: jsPsych.evaluateTimelineVariable('redCount'),
-                blue_count: jsPsych.evaluateTimelineVariable('blueCount')
+                face_id: face.id,
+                face_color: face.color,
+                face_is_good: face.isGood,
+                image_path: face.imagePath
             };
         },
         on_finish: function(data) {
-            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
-            const chosenFace = trialFaces[data.response];
+            const face = jsPsych.evaluateTimelineVariable('face');
+            data.slider_rating = data.response;
 
-            // Calculate outcome (but don't show it)
-            const outcome = getOutcome(chosenFace);
+            const rating = data.slider_rating;
+            let outcome;
+            if (rating === 50) {
+                outcome = 0;
+                data.correct = null;
+            } else if (face.isGood) {
+                data.correct = rating > 50;
+                outcome = rating > 50 ? CONFIG.REWARD_VALUE : CONFIG.PUNISHMENT_VALUE;
+            } else {
+                data.correct = rating < 50;
+                outcome = rating < 50 ? CONFIG.REWARD_VALUE : CONFIG.PUNISHMENT_VALUE;
+            }
+
             phase2Score += outcome;
-            phase2Count++;
-
-            data.chosen_face_id = chosenFace.id;
-            data.chosen_face_color = chosenFace.color;
-            data.chosen_face_is_good = chosenFace.isGood;
             data.outcome = outcome;
             data.phase2_score = phase2Score;
 
-            // Update progress
-            const phase1Progress = 0.4;
-            const phase2Progress = (phase2Count / DEMO_CONFIG.PHASE2_TRIALS) * 0.6;
-            jsPsych.progressBar.progress = phase1Progress + phase2Progress;
+            phase2TrialCount++;
+            jsPsych.progressBar.progress = 0.6 + (phase2TrialCount / DEMO_TRIALS_PER_PHASE) * 0.1;
+
+            delete data.stimulus;
+            delete data.slider_start;
+            delete data.plugin_version;
+            delete data.response;
+            delete data.trial_type;
         }
     };
 
-    // Phase 2 timeline
     const phase2Timeline = {
-        timeline: [phase2ChoiceTrial],
+        timeline: [phase2SliderTrial],
         timeline_variables: phase2Trials
     };
     timeline.push(phase2Timeline);
 
-    // Phase 2 Summary
     const phase2Summary = {
         type: HtmlKeyboardResponsePlugin,
-        stimulus: function() {
-            return `
-                <h2>Phase 2 Complete!</h2>
-                <p>Your Phase 2 score: <strong>${phase2Score}</strong></p>
-                <p>Press any key to continue.</p>
-            `;
-        },
-        post_trial_gap: 500
+        stimulus: `
+            <h2>Phase 2 Complete!</h2>
+            <p>Thank you for completing your ratings!</p>
+            <p>Press any key to continue.</p>
+        `,
+        post_trial_gap: 500,
+        data: { task: 'phase2_summary' }
     };
     timeline.push(phase2Summary);
+
+    // ========================================================================
+    // PHASE 3: PUNISHMENT PROBABILITY ESTIMATION (PHASE 1 FACES)
+    // ========================================================================
+
+    const phase3Instructions = {
+        type: HtmlKeyboardResponsePlugin,
+        stimulus: `
+            <div style="max-width: 800px; margin: auto; text-align: left;">
+                <h2>Phase 3 Instructions</h2>
+                <p>In this final phase, we will show you the faces you encountered during Phase 1.</p>
+                <p>For each face, use the slider to indicate:</p>
+                <ul>
+                    <li>What is the probability (0–100%) that this person will give you a <strong>punishment</strong>?</li>
+                </ul>
+                <p>The slider starts at 50%. You must move it before you can continue.</p>
+                <p>There are no right or wrong answers — we're interested in your impressions.</p>
+                <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} trials.</em></p>
+                <p>Press any key to start Phase 3.</p>
+            </div>
+        `,
+        data: { task: 'phase3_instructions' }
+    };
+    timeline.push(phase3Instructions);
+
+    const phase3ProbabilityTrial = {
+        type: HtmlSliderResponsePlugin,
+        stimulus: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return `
+                <div style="text-align: center;">
+                    <img src="${face.imagePath}"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 10px;">What is the probability that this person will give you a <strong>punishment</strong>?</h3>
+                </div>
+            `;
+        },
+        min: 0,
+        max: 100,
+        start: 50,
+        step: 1,
+        slider_width: 500,
+        labels: ['0%', '25%', '50%', '75%', '100%'],
+        require_movement: true,
+        data: function() {
+            return {
+                task: 'phase3_probability',
+                phase: 3,
+                face_id: jsPsych.evaluateTimelineVariable('face').id,
+                face_color: jsPsych.evaluateTimelineVariable('face').color,
+                face_is_good: jsPsych.evaluateTimelineVariable('face').isGood
+            };
+        },
+        on_finish: function(data) {
+            data.probability_punishment = data.response;
+            phase3TrialCount++;
+            jsPsych.progressBar.progress = 0.7 + (phase3TrialCount / DEMO_TRIALS_PER_PHASE) * 0.3;
+        }
+    };
+
+    const phase3Timeline = {
+        timeline: [phase3ProbabilityTrial],
+        timeline_variables: phase3Trials
+    };
+    timeline.push(phase3Timeline);
+
+    const phase3Complete = {
+        type: HtmlKeyboardResponsePlugin,
+        stimulus: `
+            <h2>Phase 3 Complete!</h2>
+            <p>Thank you for providing your ratings.</p>
+            <p>Press any key to continue.</p>
+        `,
+        post_trial_gap: 500,
+        data: { task: 'phase3_complete' }
+    };
+    timeline.push(phase3Complete);
 
     // ========================================================================
     // FINAL SUMMARY
@@ -414,18 +464,23 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             return `
                 <h2>Demo Complete!</h2>
                 <h3>Summary</h3>
-                <p>Phase 1 score: <strong>${phase1Score}</strong> (${DEMO_CONFIG.PHASE1_TRIALS} trials)</p>
-                <p>Phase 2 score: <strong>${phase2Score}</strong> (${DEMO_CONFIG.PHASE2_TRIALS} trials)</p>
-                <p>Total combined score: <strong>${phase1Score + phase2Score}</strong></p>
+                <p>Phase 1 score: <strong>${totalScore}</strong> (${DEMO_TRIALS_PER_PHASE} trials)</p>
+                <p>Phase 2 score: <strong>${phase2Score}</strong> (${DEMO_TRIALS_PER_PHASE} approach/avoidance ratings)</p>
+                <p>Phase 3: ${DEMO_TRIALS_PER_PHASE} punishment probability estimates</p>
                 <hr>
-                <p style="color: #666;">Code: ${urlParams.conditionCode} | Condition: ${urlParams.condition}, Majority: ${urlParams.majorityGroup}, P1 Type: ${urlParams.p1Type}, P2 Exposure: ${urlParams.p2Exposure}</p>
-                <p>Press any key to view data.</p>
+                <p style="color: #666; font-size: 13px;">
+                    Code: ${urlParams.conditionCode} &nbsp;|&nbsp;
+                    Condition: ${urlParams.condition} &nbsp;|&nbsp;
+                    Majority: ${urlParams.majorityGroup} &nbsp;|&nbsp;
+                    P1 Type: ${urlParams.p1Type} &nbsp;|&nbsp;
+                    P2 Exposure: ${urlParams.p2Exposure}
+                </p>
+                <p>Press any key to view raw data.</p>
             `;
         },
         post_trial_gap: 500
     };
     timeline.push(finalSummary);
 
-    // Run the experiment
     await jsPsych.run(timeline);
 }
