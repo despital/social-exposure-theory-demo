@@ -768,12 +768,12 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             <div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Phase 3 Instructions</h2>
                 <p>In this final phase, we will show you the faces you encountered during the experiment.</p>
-                <p>For each face, we will ask you two questions:</p>
-                <ol>
-                    <li>Whether you think this person is <strong>good</strong> or <strong>bad</strong></li>
-                    <li>How <strong>confident</strong> you are in your judgment</li>
-                </ol>
-                <p>There are no right or wrong answers - we're interested in your impressions.</p>
+                <p>For each face, use the slider to indicate:</p>
+                <ul>punishment
+                    <li>What is the probability (0–100%) that this person will give you a <strong></strong>?</li>
+                </ul>
+                <p>The slider starts at 50%. You must move it before you can continue.</p>
+                <p>There are no right or wrong answers — we're interested in your impressions.</p>
                 <p>Press any key to start Phase 3.</p>
             </div>
         `,
@@ -786,41 +786,42 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // Generate Phase 3 trials (Phase 1 faces only — novel faces from Phase 2 are excluded)
     let phase3Trials = generatePhase3Trials(trials, faces, jsPsych);
 
-    // In debug mode, reduce to 5 faces (10 trials: 5 goodbad + 5 confidence)
+    // In debug mode, reduce to 5 faces (5 trials)
     if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE3_TRIALS) {
         const maxFaces = 5;
-        phase3Trials = phase3Trials.slice(0, maxFaces * 2);
-        console.log('Debug mode: Reduced Phase 3 to ' + maxFaces + ' faces (' + phase3Trials.length + ' trials)');
+        phase3Trials = phase3Trials.slice(0, maxFaces);
+        console.log('Debug mode: Reduced Phase 3 to ' + phase3Trials.length + ' trials');
     }
 
     let phase3TrialCount = 0;
 
     console.log('Phase 3 initialized:', {
-        totalTrials: phase3Trials.length,
-        uniqueFaces: phase3Trials.length / 2
+        totalTrials: phase3Trials.length
     });
 
-    // Store the last good/bad response for use in confidence trial
-    let lastGoodBadResponse = null;
-
-    // Phase 3 Good/Bad Trial
-    const phase3GoodBadTrial = {
-        type: HtmlButtonResponsePlugin,
+    // Phase 3 Probability Trial
+    const phase3ProbabilityTrial = {
+        type: HtmlSliderResponsePlugin,
         stimulus: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return `
                 <div style="text-align: center;">
                     <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
-                    <h3 style="margin-top: 20px;">Do you think this person is good or bad?</h3>
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 10px;">What is the probability that this person will give you a <strong>punishment</strong>?</h3>
                 </div>
             `;
         },
-        choices: ['Bad', 'Good'],
-        button_html: (choice) => `<button class="jspsych-btn" style="font-size: 18px; padding: 15px 40px; margin: 10px;">${choice}</button>`,
+        min: 0,
+        max: 100,
+        start: 50,
+        step: 1,
+        slider_width: 500,
+        labels: ['0%', '25%', '50%', '75%', '100%'],
+        require_movement: true,
         data: function() {
             return {
-                task: 'phase3_goodbad',
+                task: 'phase3_probability',
                 phase: 3,
                 face_id: jsPsych.evaluateTimelineVariable('face').id,
                 face_color: jsPsych.evaluateTimelineVariable('face').color,
@@ -828,88 +829,19 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             };
         },
         on_finish: function(data) {
-            // Store response (0 = Bad, 1 = Good)
-            data.rating = data.response === 0 ? 'bad' : 'good';
-            lastGoodBadResponse = data.rating;
+            data.probability_punishment = data.response;
 
             phase3TrialCount++;
 
-            // Update progress bar
             // Phase 1 ends at 0.6, Phase 2 ends at 0.7, Phase 3 occupies 0.7 to 1.0 (30% of total bar)
             const phase3Progress = phase3TrialCount / phase3Trials.length;
             jsPsych.progressBar.progress = 0.7 + (phase3Progress * 0.3);
         }
     };
 
-    // Phase 3 Confidence Trial
-    const phase3ConfidenceTrial = {
-        type: HtmlButtonResponsePlugin,
-        stimulus: function() {
-            const face = jsPsych.evaluateTimelineVariable('face');
-            return `
-                <div style="text-align: center;">
-                    <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
-                    <h3 style="margin-top: 20px;">How confident are you that your choice is correct?</h3>
-                </div>
-            `;
-        },
-        choices: [
-            'Very unconfident',
-            'Unconfident',
-            'Slightly unconfident',
-            'Slightly confident',
-            'Confident',
-            'Very confident'
-        ],
-        button_html: (choice) => `<button class="jspsych-btn" style="font-size: 16px; padding: 12px 20px; margin: 5px; min-width: 180px;">${choice}</button>`,
-        data: function() {
-            return {
-                task: 'phase3_confidence',
-                phase: 3,
-                face_id: jsPsych.evaluateTimelineVariable('face').id,
-                face_color: jsPsych.evaluateTimelineVariable('face').color,
-                face_is_good: jsPsych.evaluateTimelineVariable('face').isGood,
-                previous_goodbad_rating: lastGoodBadResponse
-            };
-        },
-        on_finish: function(data) {
-            // Store confidence level (0-5 maps to 1-6)
-            data.confidence_level = data.response + 1;
-            data.confidence_label = [
-                'Very unconfident',
-                'Unconfident',
-                'Slightly unconfident',
-                'Slightly confident',
-                'Confident',
-                'Very confident'
-            ][data.response];
-
-            phase3TrialCount++;
-
-            // Update progress bar
-            // Phase 1 ends at 0.6, Phase 2 ends at 0.7, Phase 3 occupies 0.7 to 1.0 (30% of total bar)
-            const phase3Progress = phase3TrialCount / phase3Trials.length;
-            jsPsych.progressBar.progress = 0.7 + (phase3Progress * 0.3);
-        }
-    };
-
-    // Phase 3 timeline - conditional rendering based on trial type
+    // Phase 3 timeline - one probability slider trial per face
     const phase3Timeline = {
-        timeline: [
-            {
-                timeline: [phase3GoodBadTrial],
-                conditional_function: function() {
-                    return jsPsych.evaluateTimelineVariable('trialType') === 'goodbad';
-                }
-            },
-            {
-                timeline: [phase3ConfidenceTrial],
-                conditional_function: function() {
-                    return jsPsych.evaluateTimelineVariable('trialType') === 'confidence';
-                }
-            }
-        ],
+        timeline: [phase3ProbabilityTrial],
         timeline_variables: phase3Trials
     };
     timeline.push(phase3Timeline);
@@ -969,7 +901,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <ul>
                         <li><strong>Phase 1:</strong> You learned which individuals tend to give rewards versus punishments through direct experience.</li>
                         <li><strong>Phase 2:</strong> You made choices about novel individuals, allowing us to see how your learning generalized.</li>
-                        <li><strong>Phase 3:</strong> You rated the faces you encountered, helping us understand your explicit attitudes.</li>
+                        <li><strong>Phase 3:</strong> You estimated the probability of punishment for each face, helping us understand your explicit learning.</li>
                     </ul>
                     <p><strong>Background colors:</strong> The red and blue backgrounds represented different social groups. We varied the composition of these groups to study social learning and decision-making.</p>
                     <p>Your responses will help us better understand the psychological mechanisms underlying social interaction and group dynamics.</p>

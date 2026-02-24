@@ -460,20 +460,11 @@ export function generatePhase3Trials(phase1Trials, faces, jsPsych) {
     // Shuffle the order of faces
     const shuffledFaces = jsPsych.randomization.shuffle(shownFaces);
 
-    // Create trials: for each face, create good/bad trial and confidence trial
+    // Create one probability estimation trial per face
     const trials = [];
     shuffledFaces.forEach(face => {
-        // Trial 1: Good/Bad rating
         trials.push({
             face: face,
-            trialType: 'goodbad',
-            phase: 3
-        });
-
-        // Trial 2: Confidence rating
-        trials.push({
-            face: face,
-            trialType: 'confidence',
             phase: 3
         });
     });
