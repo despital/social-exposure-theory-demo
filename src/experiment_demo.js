@@ -288,9 +288,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             <div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Phase 2 Instructions</h2>
                 <p>In this phase, you will see <strong>new faces</strong> one at a time.</p>
-                <p>For each face, please use the slider to indicate how willing you are to <strong>approach</strong> or <strong>avoid</strong> this person.</p>
+                <p>For each face, you will answer <strong>three questions</strong>:</p>
+                <ol style="text-align: left; line-height: 2;">
+                    <li>How willing are you to <strong>approach</strong> or <strong>avoid</strong> this person?</li>
+                    <li>What is the <strong>probability</strong> that this person will give you a punishment?</li>
+                    <li>How <strong>confident</strong> are you in your punishment probability estimate?</li>
+                </ol>
                 <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
-                <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} trials.</em></p>
+                <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} faces.</em></p>
                 <p>Press any key to start Phase 2.</p>
             </div>
         `,
@@ -348,6 +353,87 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.outcome = outcome;
             data.phase2_score = phase2Score;
 
+            delete data.stimulus;
+            delete data.slider_start;
+            delete data.plugin_version;
+            delete data.response;
+            delete data.trial_type;
+        }
+    };
+
+    const phase2ProbabilityTrial = {
+        type: HtmlSliderResponsePlugin,
+        stimulus: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return `
+                <div style="text-align: center;">
+                    <img src="${face.imagePath}"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 10px;">What is the probability that this person will give you a <strong>punishment</strong>?</h3>
+                </div>
+            `;
+        },
+        min: 0,
+        max: 100,
+        start: 50,
+        step: 1,
+        slider_width: 500,
+        labels: ['0%', '25%', '50%', '75%', '100%'],
+        require_movement: true,
+        data: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return {
+                task: 'phase2_probability',
+                phase: 2,
+                face_id: face.id,
+                face_color: face.color,
+                face_is_good: face.isGood,
+                image_path: face.imagePath
+            };
+        },
+        on_finish: function(data) {
+            data.probability_punishment = data.response;
+            delete data.stimulus;
+            delete data.slider_start;
+            delete data.plugin_version;
+            delete data.response;
+            delete data.trial_type;
+        }
+    };
+
+    const phase2ConfidenceTrial = {
+        type: HtmlSliderResponsePlugin,
+        stimulus: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return `
+                <div style="text-align: center;">
+                    <img src="${face.imagePath}"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 10px;">How <strong>confident</strong> are you in your punishment probability estimate?</h3>
+                </div>
+            `;
+        },
+        min: 0,
+        max: 100,
+        start: 50,
+        step: 1,
+        slider_width: 500,
+        labels: ['Not at all confident', 'Somewhat confident', 'Very confident', 'Extremely confident'],
+        require_movement: true,
+        data: function() {
+            const face = jsPsych.evaluateTimelineVariable('face');
+            return {
+                task: 'phase2_confidence',
+                phase: 2,
+                face_id: face.id,
+                face_color: face.color,
+                face_is_good: face.isGood,
+                image_path: face.imagePath
+            };
+        },
+        on_finish: function(data) {
+            data.confidence_rating = data.response;
+
             phase2TrialCount++;
             jsPsych.progressBar.progress = 0.6 + (phase2TrialCount / DEMO_TRIALS_PER_PHASE) * 0.1;
 
@@ -360,7 +446,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     };
 
     const phase2Timeline = {
-        timeline: [phase2SliderTrial],
+        timeline: [phase2SliderTrial, phase2ProbabilityTrial, phase2ConfidenceTrial],
         timeline_variables: phase2Trials
     };
     timeline.push(phase2Timeline);
