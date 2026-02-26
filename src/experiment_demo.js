@@ -308,9 +308,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return `
-                <div style="text-align: center;">
-                    <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                <div style="text-align: center; user-select: none; -webkit-user-select: none;">
+                    <img src="${face.imagePath}" draggable="false"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px; -webkit-user-drag: none;">
                     <h3 style="margin-top: 10px;">How willing are you to <strong>approach</strong> or <strong>avoid</strong> this person?</h3>
                 </div>
             `;
@@ -367,9 +367,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return `
-                <div style="text-align: center;">
-                    <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                <div style="text-align: center; user-select: none; -webkit-user-select: none;">
+                    <img src="${face.imagePath}" draggable="false"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px; -webkit-user-drag: none;">
                     <h3 style="margin-top: 10px;">What is the probability that this person will give you a <strong>punishment</strong>?</h3>
                 </div>
             `;
@@ -407,9 +407,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return `
-                <div style="text-align: center;">
-                    <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                <div style="text-align: center; user-select: none; -webkit-user-select: none;">
+                    <img src="${face.imagePath}" draggable="false"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px; -webkit-user-drag: none;">
                     <h3 style="margin-top: 10px;">How <strong>confident</strong> are you in your punishment probability estimate?</h3>
                 </div>
             `;
@@ -493,9 +493,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return `
-                <div style="text-align: center;">
-                    <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                <div style="text-align: center; user-select: none; -webkit-user-select: none;">
+                    <img src="${face.imagePath}" draggable="false"
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px; -webkit-user-drag: none;">
                     <h3 style="margin-top: 10px;">What is the probability that this person will give you a <strong>punishment</strong>?</h3>
                 </div>
             `;
