@@ -8,22 +8,23 @@ export const CONFIG = {
     // Every face — regardless of color — appears this many times in Phase 1.
     // Valid values: any positive integer, subject to the constraint that
     //   TOTAL_FACES must be divisible by FACES_PER_TRIAL
-    //   (currently 100 / 4 = 25, so any positive integer works).
+    //   (currently 40 / 4 = 10, so any positive integer works).
     // Total Phase 1 trials = TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL
-    //   e.g. 100 × 12 / 4 = 300 trials, 100 × 8 / 4 = 200 trials.
+    //   e.g. 40 × 12 / 4 = 120 trials, 40 × 8 / 4 = 80 trials.
     EXPOSURES_PER_FACE: 12,
     FACES_PER_TRIAL: 4,
 
     // Stimuli — Phase 1 (base faces)
-    TOTAL_FACES: 100,
+    TOTAL_FACES: 40,
 
     // Number of faces assigned to each color group, per Phase 1 exposure condition.
     // The majority-minority split controls how many UNIQUE members of each group
     // the participant encounters — every face still appears EXPOSURES_PER_FACE times.
     // 'majority' and 'minority' are resolved to red/blue at runtime via majorityGroup.
+    // Note: at N=40, minority good-face ratio rounds to 75% (6/8) vs. target 70%.
     FACE_COLOR_SPLIT: {
-        'equal':             { red: 50, blue: 50 },
-        'majority-minority': { majority: 80, minority: 20 }
+        'equal':             { red: 20, blue: 20 },
+        'majority-minority': { majority: 32, minority: 8 }
     },
 
     // Stimuli — Phase 2 (novel faces)

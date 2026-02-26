@@ -11,9 +11,9 @@ import { CONFIG } from './config.js';
  * numeric ID (0 through TOTAL_FACES-1) and is assigned to either the "red"
  * or "blue" group. The red/blue split depends on the experimental condition:
  *
- *   - Equal condition:           50 red, 50 blue
- *   - Majority-red condition:    80 red, 20 blue
- *   - Majority-blue condition:   20 red, 80 blue
+ *   - Equal condition:           20 red, 20 blue
+ *   - Majority-red condition:    32 red, 8 blue
+ *   - Majority-blue condition:   8 red, 32 blue
  *
  * Counts come from CONFIG.FACE_COLOR_SPLIT. Which specific IDs become red vs.
  * blue is randomized per participant. Every face appears exactly
@@ -190,7 +190,7 @@ export function assignGoodBad(faces, jsPsych) {
  * groups of FACES_PER_TRIAL. Because each face appears at most once per block,
  * no face can appear twice in the same trial panel.
  *
- * Total trials = TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL = 300.
+ * Total trials = TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL = 120.
  *
  * Each trial object looks like:
  *   {
@@ -438,7 +438,7 @@ export function generatePhase2Trials(novelFaces, urlParams, jsPsych) {
  *
  * @param {Array<object>} phase1Trials - The array of Phase 1 trial objects
  *   returned by generateTrials(). Each must have a `faces` array.
- * @param {Array<object>} faces - All 100 face objects from generateFaces(),
+ * @param {Array<object>} faces - All face objects from generateFaces(),
  *   used to look up full face data by ID.
  * @param {object} jsPsych - The jsPsych instance, used for randomization.
  * @returns {Array<object>} An array of trial objects — two per unique face
