@@ -478,11 +478,15 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         grid_columns: 2,
         gap: 20,
         data: function() {
+            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             return {
                 task: 'choice',
                 phase: 1,
                 block: jsPsych.evaluateTimelineVariable('block'),
-                trial_in_block: jsPsych.evaluateTimelineVariable('trialInBlock')
+                trial_in_block: jsPsych.evaluateTimelineVariable('trialInBlock'),
+                // Panel composition: all 4 faces shown this trial (needed for RL modeling
+                // and within-trial minority proportion analyses)
+                faces_in_trial: trialFaces.map(f => ({ id: f.id, color: f.color, is_good: f.isGood }))
             };
         },
         on_finish: function(data) {
@@ -493,6 +497,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             totalScore += outcome;
             trialCount++;
 
+            data.trial_number = trialCount;  // global 1-indexed trial counter across Phase 1
             data.chosen_face_id = chosenFace.id;
             data.chosen_face_color = chosenFace.color;
             data.chosen_face_is_good = chosenFace.isGood;
