@@ -859,10 +859,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             <div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Phase 3 Instructions</h2>
                 <p>In this final phase, we will show you the faces you encountered during the experiment.</p>
-                <p>For each face, use the slider to indicate:</p>
-                <ul>
-                    <li>What is the probability (0–100%) that this person will give you a <strong>punishment</strong>?</li>
-                </ul>
+                <p>For each face, you will answer <strong>one question</strong>:</p>
+                <ol style="text-align: left; line-height: 2;">
+                    <li>What is the <strong>probability</strong> that this person will give you a punishment?</li>
+                </ol>
                 <p>The slider starts at 50%. You must move it before you can continue.</p>
                 <p>There are no right or wrong answers — we're interested in your impressions.</p>
                 <p>Press any key to start Phase 3.</p>
