@@ -1067,11 +1067,44 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 maxRateDescription: '5 (Very clear)'
                             },
                             {
-                                type: 'comment',
-                                title: 'What part of the experiment was unclear or confusing to you?',
-                                name: 'clarity_elaboration',
+                                // Which phase(s) was confusing? — shown whenever rating is not perfect
+                                type: 'checkbox',
+                                title: 'Which phase(s) did you find most confusing? (select all that apply)',
+                                name: 'confusion_phase',
                                 isRequired: false,
-                                visibleIf: '{clarity_rating} <= 2'
+                                visibleIf: '{clarity_rating} <= 3',
+                                choices: [
+                                    { value: 'phase1', text: 'Phase 1 — the learning task (choosing faces, receiving reward/punishment)' },
+                                    { value: 'phase2', text: 'Phase 2 — rating new faces with sliders' },
+                                    { value: 'phase3', text: 'Phase 3 — estimating punishment probability for previously seen faces' },
+                                    { value: 'none',   text: 'None — I understood all phases' }
+                                ]
+                            },
+                            {
+                                // Phase 1 drill-down: specific confusing aspects (multi-select + Other)
+                                type: 'checkbox',
+                                title: 'What specifically made Phase 1 confusing? (select all that apply)',
+                                name: 'confusion_phase1_details',
+                                isRequired: false,
+                                visibleIf: '{confusion_phase} contains "phase1"',
+                                choices: [
+                                    { value: 'too_many_faces',    text: 'Too many faces to keep track of' },
+                                    { value: 'group_distinction', text: 'Not enough distinction between the red and blue group members' },
+                                    { value: 'goodbad_distinction', text: 'Not enough distinction between good and bad people (rewards and punishments felt too similar)' },
+                                    { value: 'instructions',      text: 'The instructions were unclear' }
+                                ],
+                                hasOther: true,
+                                otherText: 'Other (please describe)'
+                            },
+                            {
+                                // Phase 2 / 3 open text — shown when Phase 2 or 3 was confusing
+                                type: 'comment',
+                                title: 'What specifically was confusing about the phase(s) you selected?',
+                                name: 'confusion_other_phases',
+                                isRequired: false,
+                                visibleIf: '{confusion_phase} contains "phase2" or {confusion_phase} contains "phase3"',
+                                rows: 3,
+                                placeholder: 'Please describe what was unclear...'
                             },
                             {
                                 type: 'radiogroup',
