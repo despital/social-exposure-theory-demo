@@ -678,17 +678,18 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             return `
                 <div style="text-align: center;">
                     <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 10px;">How willing are you to <strong>approach</strong> or <strong>avoid</strong> this person?</h3>
                 </div>
             `;
         },
         labels: ['Avoid', 'Neutral', 'Approach'],
         min: 0,
         max: 100,
-        slider_start: 50,
-        button_label: 'Submit',
+        start: 50,
+        step: 1,
+        slider_width: 500,
         require_movement: true,
-        prompt: '<p>How willing are you to approach or avoid this person?</p>',
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
@@ -859,8 +860,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 <h2>Phase 3 Instructions</h2>
                 <p>In this final phase, we will show you the faces you encountered during the experiment.</p>
                 <p>For each face, use the slider to indicate:</p>
-                <ul>punishment
-                    <li>What is the probability (0–100%) that this person will give you a <strong></strong>?</li>
+                <ul>
+                    <li>What is the probability (0–100%) that this person will give you a <strong>punishment</strong>?</li>
                 </ul>
                 <p>The slider starts at 50%. You must move it before you can continue.</p>
                 <p>There are no right or wrong answers — we're interested in your impressions.</p>

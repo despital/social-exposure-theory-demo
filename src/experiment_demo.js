@@ -310,17 +310,18 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             return `
                 <div style="text-align: center;">
                     <img src="${face.imagePath}"
-                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 30px;">
+                         style="width: 300px; height: 300px; border: 10px solid ${face.color}; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 10px;">How willing are you to <strong>approach</strong> or <strong>avoid</strong> this person?</h3>
                 </div>
             `;
         },
         labels: ['Avoid', 'Neutral', 'Approach'],
         min: 0,
         max: 100,
-        slider_start: 50,
-        button_label: 'Submit',
+        start: 50,
+        step: 1,
+        slider_width: 500,
         require_movement: true,
-        prompt: '<p>How willing are you to approach or avoid this person?</p>',
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
