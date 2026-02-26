@@ -341,3 +341,132 @@ This enables:
 - **PILOT_MODE:** `p2_exposure` is locked to `'equal'` for all participants; Phase 2 exposure manipulation is not active.
 - **Active conditions for pilot:** The 3 (P1 Exposure: Equal, Majority-Red, Majority-Blue) × 2 (P1 Type: Experimental, Control) = 6-condition design. Condition assignment via `?c=` URL parameter.
 - **Minority good-rate:** At N=40, the minority group achieves 75% good faces (6/8) rather than the target 70% due to integer rounding. H6 should reflect this (expected Phase 3 minority good-face rating ~25% punishment probability, not ~30%).
+
+### 8.1 Evaluating Parameter Adequacy (Did the Design Enable Learning?)
+
+The primary pilot question beyond hypothesis testing is whether the chosen parameters (N=40 faces, E=12 exposures) produced sufficient Phase 1 learning to make Phase 2 generalization interpretable. An effect absent from Phase 2 is only meaningful if we first confirm Phase 1 learning occurred.
+
+#### Decision criterion
+
+The pilot is considered successful (parameters adequate) if **≥60% of experimental-condition participants show a reliably positive Phase 1 learning slope** (see below). Below that threshold, the parameter combination should be adjusted before main-study data collection.
+
+---
+
+#### Behavioral indicators (all computable from existing data)
+
+**B1 — Learning curve slope** *(primary)*
+
+Fit per-participant logistic regression: `correct ~ block`. The slope coefficient (β₁) is the main indicator. Expectation: β₁ > 0 for experimental condition, β₁ ≈ 0 for control.
+
+*Decision thresholds:*
+| Outcome | Interpretation | Action |
+|---|---|---|
+| Median β₁ > 0.15, ≥60% participants positive | Learning occurred, E=12 sufficient | Proceed to main study |
+| Median β₁ > 0 but <60% participants positive | Marginal learning; high individual variability | Inspect RT and score curves; consider E=16 |
+| Median β₁ ≈ 0 | Learning did not occur | Increase E, reduce N, or revise task structure |
+
+*Data fields:* `choice.chosen_face_is_good`, `choice.block`
+
+**B2 — Final-block accuracy**
+
+Mean proportion of `chosen_face_is_good == true` across blocks 10–11 (last 2 blocks). Chance = 25% (random choice among 4 faces). Adequate learning criterion: mean accuracy > 55%.
+
+*Data fields:* `choice.chosen_face_is_good`, `choice.block`
+
+**B3 — Phase 1 score trajectory**
+
+Plot `total_score` cumulated over `trial_number`. A concave-up curve (accelerating gains) indicates learning. A flat or noisy curve indicates near-random play.
+
+*Data fields:* `choice.total_score`, `choice.trial_number`
+
+**B4 — Response time trend**
+
+RTs should decrease over blocks as participants become more decisive. Fit per-participant linear regression: `log(rt) ~ block`. A negative slope (faster responses late in Phase 1) provides convergent evidence for learning.
+
+*Data fields:* `choice.rt`, `choice.block`
+
+**B5 — Win-stay / lose-shift at the color-group level**
+
+After a punishment, does the participant tend to avoid the same color group on the next trial? This color-level switching analysis requires `faces_in_trial` (now saved) to identify which colors were available next and `chosen_face_color` to identify the choice made.
+
+Construct per-participant: P(chose same color | previous outcome = punishment) vs. P(chose same color | previous outcome = reward). A divergence between these two rates confirms outcome-sensitive color-level learning.
+
+*Data fields:* `choice.chosen_face_color`, `choice.outcome`, `choice.faces_in_trial` (newly added)
+
+**B6 — Phase 3 calibration error**
+
+After Phase 1, Phase 3 asks participants to estimate punishment probability for each Phase 1 face. Calibration error = `|mean(prob_punishment | good face) − 10| + |mean(prob_punishment | bad face) − 50|`. Lower error = better learned face values.
+
+*Threshold:* Total calibration error < 30 pp = adequate learning.
+
+*Data fields:* `phase3_probability.probability_punishment`, `phase3_probability.face_is_good`
+
+---
+
+#### Subjective indicators (existing)
+
+**S1 — Design clarity rating**
+
+`surveys.user_feedback.clarity_rating` (0–5 scale; question: *"How clear was the design of the experiment? Did you understand what you were supposed to do?"*)
+
+Saved to Firebase under `surveys.user_feedback`. Expected adequate range: mean ≥ 3.
+
+*Interpretation:* Low clarity (< 2.5) with low accuracy (B2 < 40%) suggests task confusion rather than insufficient exposure — a different problem from what E and N parameters can fix. High clarity with low accuracy suggests the task is too hard given current N and E.
+
+**S2 — Participant-reported task difficulty**
+
+`surveys.user_feedback.difficulty_rating` — already collected. Cross-tabulate with B2 (final block accuracy) to identify whether hard-task reports map onto actual low performance.
+
+---
+
+#### Proposed easy additions (minimal effort, high diagnostic value)
+
+**A1 — Post-Phase-1 learning confidence question** *(highest priority addition)*
+
+A single slider screen inserted immediately after the Phase 1 complete screen and before Phase 2 break:
+
+> *"How well do you feel you learned which people tend to give rewards?"*
+> Slider: 0 = "Not at all" → 100 = "Completely"
+
+*Why:* This captures subjective learning before Phase 2 experience can contaminate the report. It is the most direct early-warning signal: if most participants rate < 30 despite completing 120 trials, the design requires adjustment.
+
+*Implementation:* Add one `HtmlSliderResponsePlugin` trial to the timeline between `phase1_complete` and `phase2BreakScreen`. Save as `task: 'phase1_learning_confidence'`, field `learning_confidence`.
+
+**A2 — Group-level attribution question**
+
+A forced-choice or slider screen inserted at the same post-Phase-1 position:
+
+> *"Overall, which group of people tended to give you more rewards?"*
+> Slider: 0 = "Strongly Red" → 50 = "Equally" → 100 = "Strongly Blue"
+
+*Why:* This is the most direct manipulation check for the group-level learning that drives Phase 2 generalization. A participant who learned face-level values but not group-level tendencies will not show Phase 2 bias. Comparing this to objective group composition (equal vs. majority-minority condition) validates the exposure manipulation itself.
+
+*Implementation:* Same position as A1. Save as `task: 'phase1_group_attribution'`, field `group_attribution_rating`.
+
+**A3 — Strategy report** *(existing user feedback survey)*
+
+The existing `suggestions` free-text field in `endsurvey_user_feedback` is already collected. Code it post-hoc for:
+- Mentions of color groups ("red", "blue")
+- Mentions of reward/punishment patterns
+- Reports of explicit strategies vs. gut feeling
+
+This is a zero-cost addition to the existing data pipeline.
+
+---
+
+#### Parameter adjustment decision tree (pilot → main study)
+
+```
+Phase 1 learning (B1 ≥60% positive slopes)?
+├── YES → Phase 3 calibration adequate (B6 < 30 pp)?
+│   ├── YES → Phase 2 bias detectable (H1 or H2 effect size > 0.2)?
+│   │   ├── YES → ✓ Parameters adequate; proceed to main study
+│   │   └── NO  → Check A2 (group attribution): is exposure manipulation working?
+│   │             If A2 works but Phase 2 doesn't: increase Phase 2 trial count
+│   └── NO  → Face-level learning occurred but not consolidated;
+│             Consider adding Phase 3 to appear after every 2 Phase 1 blocks (interleaved rating)
+└── NO  → Learning failed
+         B4 (RT) declining?  →  YES: decision speed improving, extend E to 16
+                             →  NO: task confusion likely; inspect A1 and S1
+                                    (if S1 < 2.5: revise instructions; if ≥ 2.5: increase E)
+```
