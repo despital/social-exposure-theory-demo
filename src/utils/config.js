@@ -101,8 +101,11 @@ export const CONFIG = {
     },
 
     // Phase 2 parameters (single-face slider design)
-    // Total novel faces shown per session; adjustable
-    PHASE2_TOTAL_TRIALS: 60,
+    // Total novel faces shown per session; adjustable.
+    // With 3 questions per face (approach-avoidance, probability, confidence),
+    // 20 faces ≈ 12 min — comparable to Phase 1 (120 trials × 5 s = 10 min).
+    // Ratio: 40 learned faces (Phase 1) : 20 novel faces (Phase 2) = 2:1.
+    PHASE2_TOTAL_TRIALS: 20,
     // Red:blue split per Phase 2 Exposure level (must sum to 1.0)
     PHASE2_EXPOSURE_RATIOS: {
         'equal':         { red: 0.50, blue: 0.50 },

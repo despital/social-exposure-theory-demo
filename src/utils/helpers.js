@@ -82,7 +82,7 @@ export function generateFaces(jsPsych, urlParams) {
  * backend scoring shown at the very end of the experiment.
  *
  * @param {object} jsPsych - The jsPsych instance for randomization.
- * @returns {Array<object>} An array of 120 novel face objects, each with
+ * @returns {Array<object>} An array of TOTAL_NOVEL_FACES novel face objects, each with
  *   id (e.g. "n001"), color, imagePath, and isGood.
  */
 export function generateNovelFaces(jsPsych) {

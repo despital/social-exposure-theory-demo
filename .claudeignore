@@ -1,0 +1,19 @@
+# Node dependencies -- huge
+node_modules/
+
+# Build artifacts -- regenerable
+dist/
+
+# Participant data -- private
+data/
+
+# Large stimulus assets
+stimuli/
+*.png
+*.jpg
+*.mp4
+*.wav
+
+# OS artifacts
+.DS_Store
+Thumbs.db

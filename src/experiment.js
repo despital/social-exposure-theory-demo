@@ -143,6 +143,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     let phase2Score = 0;
     let phase2TrialCount = 0;
+    let phase2FaceIndex = 0;  // 1-indexed presentation order within Phase 2
 
     console.log('Experiment initialized:', {
         conditionCode: urlParams.conditionCode,
@@ -692,12 +693,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         require_movement: true,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
+            phase2FaceIndex++;  // increment once per face (slider is always first question)
             return {
                 task: 'phase2_slider',
                 phase: 2,
                 face_id: face.id,
                 face_color: face.color,
                 face_is_good: face.isGood,
+                face_trial_index: phase2FaceIndex,
                 image_path: face.imagePath
             };
         },
@@ -763,6 +766,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 face_id: face.id,
                 face_color: face.color,
                 face_is_good: face.isGood,
+                face_trial_index: phase2FaceIndex,
                 image_path: face.imagePath
             };
         },
@@ -804,6 +808,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 face_id: face.id,
                 face_color: face.color,
                 face_is_good: face.isGood,
+                face_trial_index: phase2FaceIndex,
                 image_path: face.imagePath
             };
         },

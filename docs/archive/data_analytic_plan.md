@@ -337,7 +337,7 @@ This enables:
 
 ## 8. Pilot-Specific Notes
 
-- **Sample size:** Pilot target is small (n ≈ 6–12 per condition). Analyses will be descriptive / pattern-confirming rather than inferential. Effect sizes and CI widths will inform power analysis for the main study.
+- **Sample size:** Pilot target is small (n = 5 per condition). Analyses will be descriptive / pattern-confirming rather than inferential. Effect sizes and CI widths will inform power analysis for the main study.
 - **PILOT_MODE:** `p2_exposure` is locked to `'equal'` for all participants; Phase 2 exposure manipulation is not active.
 - **Active conditions for pilot:** The 3 (P1 Exposure: Equal, Majority-Red, Majority-Blue) × 2 (P1 Type: Experimental, Control) = 6-condition design. Condition assignment via `?c=` URL parameter.
 - **Minority good-rate:** At N=40, the minority group achieves 75% good faces (6/8) rather than the target 70% due to integer rounding. H6 should reflect this (expected Phase 3 minority good-face rating ~25% punishment probability, not ~30%).
