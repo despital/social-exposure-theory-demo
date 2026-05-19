@@ -16,6 +16,32 @@ Node.js / npm:
 
 ---
 
+## Git Remotes
+
+Two remotes are configured:
+
+  origin  https://github.com/social-ai-uoft/social-exposure-theory   # org repo — documentation only
+  demo    https://github.com/despital/social-exposure-theory-demo     # personal repo — live experiment
+
+**Push rule: always push to BOTH remotes.**
+  git push origin master
+  git push demo master
+
+**Deploying to GitHub Pages (making the experiment live):**
+  1. npm run build
+  2. git checkout gh-pages
+  3. cp dist/*.js dist/*.html dist/*.txt .   # copy updated bundles to root
+  4. git add <changed bundle files>
+  5. git commit -m "Deploy: ..."
+  6. git push origin gh-pages
+  7. git push demo gh-pages                 # <-- THIS is what makes it live
+  8. git checkout master
+
+The experiment is served from despital/social-exposure-theory-demo (gh-pages branch).
+The org remote is for documentation and team visibility only — it does NOT serve the live experiment.
+
+---
+
 ## Folder Map
 
 ```
