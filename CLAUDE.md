@@ -30,12 +30,17 @@ Two remotes are configured:
 **Deploying to GitHub Pages (making the experiment live):**
   1. npm run build
   2. git checkout gh-pages
-  3. cp dist/*.js dist/*.html dist/*.txt .   # copy updated bundles to root
-  4. git add <changed bundle files>
-  5. git commit -m "Deploy: ..."
-  6. git push origin gh-pages
-  7. git push demo gh-pages                 # <-- THIS is what makes it live
-  8. git checkout master
+  3. cp dist/*.js dist/*.html dist/*.txt .        # copy updated bundles to root
+  4. cp -r dist/stimuli/faces/. stimuli/faces/   # REQUIRED if stimuli changed
+  5. git add bundle.js *.bundle.js *.LICENSE.txt index.html stimuli/faces/
+  6. git commit -m "Deploy: ..."
+  7. git push origin gh-pages
+  8. git push demo gh-pages                      # <-- THIS is what makes it live
+  9. git checkout master
+
+  NOTE: Step 4 is mandatory whenever face images change. The stimuli/ directory
+  in gh-pages is tracked separately from dist/ — webpack copies it to dist/ on
+  build, but it does NOT flow to gh-pages automatically.
 
 The experiment is served from despital/social-exposure-theory-demo (gh-pages branch).
 The org remote is for documentation and team visibility only — it does NOT serve the live experiment.
