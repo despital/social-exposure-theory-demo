@@ -147,7 +147,7 @@ P(face was good | punished) ≈ 32%  (noise)
 
 ### Participant Experience
 
-On each trial, the participant sees one **novel face** (never encountered in Phase 1) with a red or blue background, and answers **three questions** in sequence, each on a separate slider screen:
+On each trial, the participant sees one face with a red or blue background and answers **three questions** in sequence, each on a separate slider screen. The majority of faces are **novel** (never encountered in Phase 1); a minority are **familiar** faces drawn from the Phase 1 set. Familiar faces appear in their original Phase 1 color (group membership is fixed). Participants are not informed that some faces are familiar.
 
 1. **Approach-avoidance:** "How willing are you to approach or avoid this person?" (0 = Strongly Avoid → 100 = Strongly Approach)
 2. **Punishment probability:** "What is the probability that this person will give you a punishment?" (0% → 100%)
@@ -159,21 +159,26 @@ No feedback is shown during Phase 2. Hidden outcomes are calculated using the sa
 
 | Parameter | Value | Config key |
 |---|---|---|
+| Total faces shown per session | **20** | `PHASE2_TOTAL_TRIALS` |
+| — Familiar (Phase 1) faces | **5** (adjustable) | `PHASE2_FAMILIAR_FACES` |
+| — Novel faces | **15** | derived |
 | Novel face pool | 120 identities (60 per color) | `TOTAL_NOVEL_FACES` |
-| Faces shown per session | **20** | `PHASE2_TOTAL_TRIALS` |
+| Familiar face sampling | Random subset of the 40 Phase 1 faces encountered | `generatePhase2Trials()` |
 | Questions per face | 3 (one slider screen each) | — |
 | Total Phase 2 slider responses | 60 | — |
 | Est. duration | ~12 min | — |
-| Sampling | Without replacement (pool ≫ session count) | `generatePhase2Trials()` |
+| Novel face sampling | Without replacement (pool ≫ session count) | `generatePhase2Trials()` |
 | Hidden scoring | Good/bad ratio same as Phase 1 (70:30) | `GOOD_BAD_RATIO` |
 
 ### Face Composition by P2 Exposure Level
 
-| P2 Exposure | Red novel faces | Blue novel faces |
-|---|---|---|
-| Equal (pilot) | 10 | 10 |
-| Majority-Red | 16 | 4 |
-| Majority-Blue | 4 | 16 |
+The exposure ratio (`PHASE2_EXPOSURE_RATIOS`) governs the red/blue split of the **novel face slots only**. Familiar faces contribute their original Phase 1 colors and are not subject to the ratio.
+
+| P2 Exposure | Red novel faces | Blue novel faces | Familiar faces |
+|---|---|---|---|
+| Equal (pilot) | 7–8 | 7–8 | 5 |
+| Majority-Red | 12 | 3 | 5 |
+| Majority-Blue | 3 | 12 | 5 |
 
 Ratios: equal = 50/50, majority = 80/20, configured in `PHASE2_EXPOSURE_RATIOS`.
 
@@ -253,8 +258,9 @@ Three trial types per novel face, presented in fixed sequence. All three share t
 
 | Field | Type | Description |
 |---|---|---|
-| `face_id` | string (`nXXX`) | Novel face ID |
-| `face_color` | `red` / `blue` | Group assignment for this session |
+| `face_id` | string (`nXXX` or int) | Face ID; `nXXX` = novel, integer = familiar (Phase 1) |
+| `face_type` | `'novel'` / `'familiar'` | Whether this face appeared in Phase 1 |
+| `face_color` | `red` / `blue` | Group assignment |
 | `face_is_good` | bool | Hidden good/bad label |
 | `face_trial_index` | int 1–20 | Presentation order within Phase 2 |
 | `image_path` | string | Path to image file |
@@ -267,7 +273,8 @@ Three trial types per novel face, presented in fixed sequence. All three share t
 
 | Field | Type | Description |
 |---|---|---|
-| `face_id` | string | Same face as slider trial |
+| `face_id` | string / int | Same face as slider trial |
+| `face_type` | `'novel'` / `'familiar'` | Same face |
 | `face_color` | `red` / `blue` | Same face |
 | `face_is_good` | bool | Same face |
 | `face_trial_index` | int | Same face |
@@ -279,7 +286,8 @@ Three trial types per novel face, presented in fixed sequence. All three share t
 
 | Field | Type | Description |
 |---|---|---|
-| `face_id` | string | Same face |
+| `face_id` | string / int | Same face |
+| `face_type` | `'novel'` / `'familiar'` | Same face |
 | `face_color` | `red` / `blue` | Same face |
 | `face_is_good` | bool | Same face |
 | `face_trial_index` | int | Same face |
@@ -420,6 +428,7 @@ All behavioral indicators pass but S1 clarity low?
 | Good-person P(reward) | 0.9 | `GOOD_PERSON_PROBS.reward` | May raise to 0.95 if B6 fails |
 | Bad-person P(reward) | 0.5 | `BAD_PERSON_PROBS.reward` | May lower to 0.35 if B5 fails |
 | Phase 2 faces per session | 20 | `PHASE2_TOTAL_TRIALS` | With 3 questions/face, balances depth vs. time |
+| Phase 2 familiar faces | 5 | `PHASE2_FAMILIAR_FACES` | Random subset of the 40 Phase 1 faces; adjustable |
 | Phase 2 exposure (Factor 3) | Equal only (pilot) | `PILOT_MODE` | Re-enable via `PILOT_MODE: false` for main study |
 | Phase 3 inclusion | Included | — | May drop if experiment time > 45 min |
 | Points-to-money | 100 pts = $1 | `POINTS_TO_DOLLARS` | Subject to Prolific budget |

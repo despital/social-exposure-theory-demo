@@ -361,54 +361,57 @@ export function getURLParams(jsPsych) {
 /**
  * Generate trials for Phase 2 (single-face approach-avoidance slider).
  *
- * Phase 2 presents novel faces (never seen in Phase 1) one at a time.
- * The participant rates each face on a continuous approach-avoidance slider
- * using jsPsych's html-slider-response plugin. No feedback is provided.
+ * Phase 2 presents a mix of novel faces (never seen in Phase 1) and
+ * encountered faces (seen in Phase 1) one at a time. The participant rates
+ * each face on a continuous approach-avoidance slider using jsPsych's
+ * html-slider-response plugin. No feedback is provided.
  *
- * The number of red vs. blue novel faces shown is determined by the Phase 2
- * exposure condition (urlParams.p2Exposure) and PHASE2_EXPOSURE_RATIOS in
- * config. During pilot mode this is always 'equal' (50/50).
+ * Sampling is always balanced by both source and group:
+ *   - PHASE2_TOTAL_TRIALS / 4 novel red faces
+ *   - PHASE2_TOTAL_TRIALS / 4 novel blue faces
+ *   - PHASE2_TOTAL_TRIALS / 4 encountered red faces (from Phase 1 pool)
+ *   - PHASE2_TOTAL_TRIALS / 4 encountered blue faces (from Phase 1 pool)
  *
- * Novel faces also carry a hidden good/bad label (same ratio as Phase 1).
- * This status is NOT revealed during Phase 2 — it is only used for backend
- * scoring displayed at the very end of the experiment.
+ * All sampling is without replacement. The minority group in majority-minority
+ * conditions has 8 unique faces; the per-bucket count (default 5) stays within
+ * that bound.
  *
  * Each trial object looks like:
  *   {
  *     face: { id: 'n042', color: 'red', imagePath: '...', isGood: true },
+ *     face_source: 'novel',   // or 'encountered'
  *     phase: 2
  *   }
  *
  * @param {Array<object>} novelFaces - Novel face objects from generateNovelFaces().
- * @param {object} urlParams - Parsed URL parameters; p2Exposure determines
- *   the red:blue ratio of novel faces shown.
+ * @param {Array<object>} faces - Phase 1 face objects from generateFaces() with
+ *   good/bad status already assigned by assignGoodBad().
  * @param {object} jsPsych - The jsPsych instance, used for randomization.
  * @returns {Array<object>} A shuffled array of trial objects (one face per trial).
  */
-export function generatePhase2Trials(novelFaces, urlParams, jsPsych) {
-    const totalTrials = CONFIG.PHASE2_TOTAL_TRIALS;
-    const ratios = CONFIG.PHASE2_EXPOSURE_RATIOS[urlParams.p2Exposure] || CONFIG.PHASE2_EXPOSURE_RATIOS['equal'];
-    const redCount = Math.round(totalTrials * ratios.red);
-    const blueCount = totalTrials - redCount;
+export function generatePhase2Trials(novelFaces, faces, jsPsych) {
+    const perBucket = CONFIG.PHASE2_TOTAL_TRIALS / 4;
 
-    const redPool = novelFaces.filter(f => f.color === 'red');
-    const bluePool = novelFaces.filter(f => f.color === 'blue');
+    // Novel faces — sample perBucket from each color
+    const novelRed  = jsPsych.randomization.sampleWithoutReplacement(
+        novelFaces.filter(f => f.color === 'red'), perBucket
+    );
+    const novelBlue = jsPsych.randomization.sampleWithoutReplacement(
+        novelFaces.filter(f => f.color === 'blue'), perBucket
+    );
 
-    // Sample without replacement when pool is large enough, otherwise with replacement
-    const selectedRed = redCount <= redPool.length
-        ? jsPsych.randomization.sampleWithoutReplacement(redPool, redCount)
-        : jsPsych.randomization.sampleWithReplacement(redPool, redCount);
+    // Encountered faces — sample perBucket from each color
+    const encRed  = jsPsych.randomization.sampleWithoutReplacement(
+        faces.filter(f => f.color === 'red'), perBucket
+    );
+    const encBlue = jsPsych.randomization.sampleWithoutReplacement(
+        faces.filter(f => f.color === 'blue'), perBucket
+    );
 
-    const selectedBlue = blueCount <= bluePool.length
-        ? jsPsych.randomization.sampleWithoutReplacement(bluePool, blueCount)
-        : jsPsych.randomization.sampleWithReplacement(bluePool, blueCount);
+    const novelTrials      = [...novelRed, ...novelBlue].map(face => ({ face, face_source: 'novel',      phase: 2 }));
+    const encounteredTrials = [...encRed,  ...encBlue ].map(face => ({ face, face_source: 'encountered', phase: 2 }));
 
-    const selectedFaces = jsPsych.randomization.shuffle([...selectedRed, ...selectedBlue]);
-
-    return selectedFaces.map(face => ({
-        face: face,
-        phase: 2
-    }));
+    return jsPsych.randomization.shuffle([...novelTrials, ...encounteredTrials]);
 }
 
 /**

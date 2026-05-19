@@ -65,6 +65,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         if (CONFIG.DEBUG_MODE.SKIP_DEMOGRAPHICS) sectionsToShow = sectionsToShow.filter(s => s !== 'demographics');
     }
 
+    // Sections temporarily hidden from the pilot (re-enable by removing from this array)
+    const SECTIONS_HIDDEN = ['phase3'];
+    sectionsToShow = sectionsToShow.filter(s => !SECTIONS_HIDDEN.includes(s));
+
     // Helper function to check if a section should be shown
     const shouldShowSection = (section) => sectionsToShow.includes(section);
 
@@ -138,7 +142,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         CONFIG.PHASE2_TOTAL_TRIALS = 6; // 3 red + 3 blue in debug
         console.log('Debug mode: Reduced Phase 2 to ' + CONFIG.PHASE2_TOTAL_TRIALS + ' trials');
     }
-    const phase2Trials = generatePhase2Trials(novelFaces, urlParams, jsPsych);
+    const phase2Trials = generatePhase2Trials(novelFaces, faces, jsPsych);
     CONFIG.PHASE2_TOTAL_TRIALS = originalPhase2Total; // Restore original value
 
     let phase2Score = 0;
@@ -700,6 +704,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 face_id: face.id,
                 face_color: face.color,
                 face_is_good: face.isGood,
+                face_source: jsPsych.evaluateTimelineVariable('face_source'),
                 face_trial_index: phase2FaceIndex,
                 image_path: face.imagePath
             };
@@ -766,6 +771,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 face_id: face.id,
                 face_color: face.color,
                 face_is_good: face.isGood,
+                face_source: jsPsych.evaluateTimelineVariable('face_source'),
                 face_trial_index: phase2FaceIndex,
                 image_path: face.imagePath
             };
@@ -808,6 +814,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 face_id: face.id,
                 face_color: face.color,
                 face_is_good: face.isGood,
+                face_source: jsPsych.evaluateTimelineVariable('face_source'),
                 face_trial_index: phase2FaceIndex,
                 image_path: face.imagePath
             };
@@ -816,8 +823,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.confidence_rating = data.response;
 
             phase2TrialCount++;
-            // Phase 1 ends at 0.6, Phase 2 occupies 0.6 to 0.7 (10% of total bar)
-            jsPsych.progressBar.progress = 0.6 + (phase2TrialCount / phase2Trials.length) * 0.1;
+            const phase2ProgressEnd = shouldShowSection('phase3') ? 0.7 : 1.0;
+            jsPsych.progressBar.progress = 0.6 + (phase2TrialCount / phase2Trials.length) * (phase2ProgressEnd - 0.6);
 
             delete data.stimulus;
             delete data.slider_start;
