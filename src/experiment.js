@@ -170,7 +170,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     const welcome = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: `
-            <h1>Welcome to the Social Exposure Theory Experiment</h1>
+            <h1>Welcome to the Social Interactions with Aliens Experiment</h1>
             <p>Press any key to begin.</p>
         `
     };
@@ -571,9 +571,32 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         }
     };
 
+    // Memorization trial: show chosen face + outcome together to reinforce face-outcome association
+    const memorizationTrial = {
+        type: HtmlKeyboardResponsePlugin,
+        stimulus: function() {
+            const lastChoice = jsPsych.data.get().filter({task: 'choice'}).last(1).values()[0];
+            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
+            const chosenFace = trialFaces[lastChoice.response];
+            const outcome = lastChoice.outcome;
+            const feedbackClass = outcome > 0 ? 'positive' : 'negative';
+            const feedbackText = outcome > 0 ? `+${outcome}` : `${outcome}`;
+            return `
+                <div style="text-align: center;">
+                    <img src="${chosenFace.imagePath}"
+                         style="width: 200px; height: 200px; border: 10px solid ${chosenFace.color}; border-radius: 10px; display: block; margin: 0 auto 20px;">
+                    <div class="feedback ${feedbackClass}">${feedbackText}</div>
+                </div>
+            `;
+        },
+        choices: "NO_KEYS",
+        trial_duration: 2000,
+        data: { task: 'memorization', phase: 1 }
+    };
+
     // Main experiment procedure
     const trialProcedure = {
-        timeline: [choiceTrial, feedbackTrial],
+        timeline: [choiceTrial, feedbackTrial, memorizationTrial],
         timeline_variables: trials
     };
     timeline.push(trialProcedure);

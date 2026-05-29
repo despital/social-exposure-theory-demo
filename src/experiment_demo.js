@@ -84,7 +84,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     const welcome = {
         type: HtmlKeyboardResponsePlugin,
         stimulus: `
-            <h1>Social Exposure Theory Experiment</h1>
+            <h1>Social Interactions with Aliens Experiment</h1>
             <h2 style="color: #e74c3c;">DEMO VERSION</h2>
             <p>This is a simplified in-lab demo with ${DEMO_TRIALS_PER_PHASE} trials per phase.</p>
             <p style="color: #666;">Condition: ${urlParams.conditionCode} | P1: ${urlParams.p1Type} | P2 Exposure: ${urlParams.p2Exposure}</p>
@@ -221,8 +221,31 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         }
     };
 
+    // Memorization trial: show chosen face + outcome together to reinforce face-outcome association
+    const memorizationTrial = {
+        type: HtmlKeyboardResponsePlugin,
+        stimulus: function() {
+            const lastChoice = jsPsych.data.get().filter({task: 'choice'}).last(1).values()[0];
+            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
+            const chosenFace = trialFaces[lastChoice.response];
+            const outcome = lastChoice.outcome;
+            const feedbackClass = outcome > 0 ? 'positive' : 'negative';
+            const feedbackText = outcome > 0 ? `+${outcome}` : `${outcome}`;
+            return `
+                <div style="text-align: center;">
+                    <img src="${chosenFace.imagePath}"
+                         style="width: 200px; height: 200px; border: 10px solid ${chosenFace.color}; border-radius: 10px; display: block; margin: 0 auto 20px;">
+                    <div class="feedback ${feedbackClass}">${feedbackText}</div>
+                </div>
+            `;
+        },
+        choices: "NO_KEYS",
+        trial_duration: 2000,
+        data: { task: 'memorization', phase: 1 }
+    };
+
     const phase1Timeline = {
-        timeline: [choiceTrial, feedbackTrial],
+        timeline: [choiceTrial, feedbackTrial, memorizationTrial],
         timeline_variables: phase1Trials
     };
     timeline.push(phase1Timeline);
