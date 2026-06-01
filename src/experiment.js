@@ -578,19 +578,15 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             const lastChoice = jsPsych.data.get().filter({task: 'choice'}).last(1).values()[0];
             const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             const chosenFace = trialFaces[lastChoice.response];
-            const outcome = lastChoice.outcome;
-            const feedbackClass = outcome > 0 ? 'positive' : 'negative';
-            const feedbackText = outcome > 0 ? `+${outcome}` : `${outcome}`;
             return `
                 <div style="text-align: center;">
                     <img src="${chosenFace.imagePath}"
                          style="width: 200px; height: 200px; border: 10px solid ${chosenFace.color}; border-radius: 10px; display: block; margin: 0 auto 20px;">
-                    <div class="feedback ${feedbackClass}">${feedbackText}</div>
                 </div>
             `;
         },
         choices: "NO_KEYS",
-        trial_duration: 2000,
+        trial_duration: 6000,
         data: { task: 'memorization', phase: 1 }
     };
 
