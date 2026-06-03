@@ -528,34 +528,47 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         type: HtmlKeyboardResponsePlugin,
         stimulus: function() {
             const lastTrial = jsPsych.data.get().last(1).values()[0];
+            const trialFaces = jsPsych.evaluateTimelineVariable('faces');
+            const chosenIndex = lastTrial.response;
             const outcome = lastTrial.outcome;
+            const feedbackClass = outcome > 0 ? 'positive' : 'negative';
+            const feedbackText = outcome > 0 ? `+${outcome}` : `${outcome}`;
 
             if (urlParams.p1Type === 'control') {
-                // Control: show all 4 faces with their outcomes
+                // Control: show all 4 outcome numbers in the same grid layout
                 const allOutcomes = lastTrial.all_outcomes;
-                const chosenIndex = lastTrial.response;
                 let html = '<div class="control-feedback-grid">';
                 allOutcomes.forEach((face, i) => {
                     const isChosen = i === chosenIndex;
-                    const feedbackClass = face.outcome > 0 ? 'positive' : 'negative';
+                    const fc = face.outcome > 0 ? 'positive' : 'negative';
+                    const ft = face.outcome > 0 ? `+${face.outcome}` : `${face.outcome}`;
                     html += `
                         <div class="control-feedback-cell ${isChosen ? 'chosen' : ''}">
-                            <div class="feedback-value ${feedbackClass}">
-                                ${face.outcome > 0 ? '+' + face.outcome : face.outcome}
+                            <div style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <div class="feedback-value ${fc}">${ft}</div>
                             </div>
                         </div>`;
                 });
                 html += '</div>';
                 return html;
             } else {
-                // Experimental: single outcome
-                const feedbackClass = outcome > 0 ? 'positive' : 'negative';
-                const feedbackText = outcome > 0 ? `+${outcome}` : outcome;
-                return `
-                    <div class="feedback ${feedbackClass}">
-                        ${feedbackText}
-                    </div>
-                `;
+                // Experimental: show full face grid; replace chosen face with reward number
+                let html = '<div class="control-feedback-grid">';
+                trialFaces.forEach((face, i) => {
+                    const isChosen = i === chosenIndex;
+                    html += `<div class="control-feedback-cell ${isChosen ? 'chosen' : ''}">`;
+                    if (isChosen) {
+                        html += `
+                            <div style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <div class="feedback-value ${feedbackClass}">${feedbackText}</div>
+                            </div>`;
+                    } else {
+                        html += `<img src="${face.imagePath}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 5px; display: block; margin: 0 auto;">`;
+                    }
+                    html += `</div>`;
+                });
+                html += '</div>';
+                return html;
             }
         },
         choices: "NO_KEYS",  // Disable keyboard responses
@@ -578,15 +591,19 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             const lastChoice = jsPsych.data.get().filter({task: 'choice'}).last(1).values()[0];
             const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             const chosenFace = trialFaces[lastChoice.response];
+            const outcome = lastChoice.outcome;
+            const feedbackClass = outcome > 0 ? 'positive' : 'negative';
+            const feedbackText = outcome > 0 ? `+${outcome}` : `${outcome}`;
             return `
                 <div style="text-align: center;">
                     <img src="${chosenFace.imagePath}"
                          style="width: 200px; height: 200px; border: 10px solid ${chosenFace.color}; border-radius: 10px; display: block; margin: 0 auto 20px;">
+                    <div class="feedback ${feedbackClass}">${feedbackText}</div>
                 </div>
             `;
         },
         choices: "NO_KEYS",
-        trial_duration: 6000,
+        trial_duration: 3000,
         data: { task: 'memorization', phase: 1 }
     };
 
