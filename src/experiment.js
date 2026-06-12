@@ -859,7 +859,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.confidence_rating = data.response;
 
             phase2TrialCount++;
-            const phase2ProgressEnd = shouldShowSection('phase3') ? 0.7 : 1.0;
+            const phase2ProgressEnd = 1.0;
             jsPsych.progressBar.progress = 0.6 + (phase2TrialCount / phase2Trials.length) * (phase2ProgressEnd - 0.6);
 
             delete data.stimulus;
@@ -1040,7 +1040,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <ul>
                         <li><strong>Phase 1:</strong> You learned which individuals tend to give rewards versus punishments through direct experience.</li>
                         <li><strong>Phase 2:</strong> You made choices about novel individuals, allowing us to see how your learning generalized.</li>
-                        <li><strong>Phase 3:</strong> You estimated the probability of punishment for each face, helping us understand your explicit learning.</li>
                     </ul>
                     <p><strong>Background colors:</strong> The red and blue backgrounds represented different social groups. We varied the composition of these groups to study social learning and decision-making.</p>
                     <p>Your responses will help us better understand the psychological mechanisms underlying social interaction and group dynamics.</p>
@@ -1125,7 +1124,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 choices: [
                                     { value: 'phase1', text: 'Phase 1 — the learning task (choosing faces, receiving reward/punishment)' },
                                     { value: 'phase2', text: 'Phase 2 — rating new faces with sliders' },
-                                    { value: 'phase3', text: 'Phase 3 — estimating punishment probability for previously seen faces' },
                                     { value: 'none',   text: 'None — I understood all phases' }
                                 ]
                             },
@@ -1151,7 +1149,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                                 title: 'What specifically was confusing about the phase(s) you selected?',
                                 name: 'confusion_other_phases',
                                 isRequired: false,
-                                visibleIf: '{confusion_phase} contains "phase2" or {confusion_phase} contains "phase3"',
+                                visibleIf: '{confusion_phase} contains "phase2"',
                                 rows: 3,
                                 placeholder: 'Please describe what was unclear...'
                             },
@@ -1199,7 +1197,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                             <p style="font-size: 18px; margin: 10px 0;">Phase 1 Score: <strong>${totalScore}</strong> points</p>
                             <p style="font-size: 18px; margin: 10px 0;">Phase 2 Score: <strong>${phase2Score}</strong> points</p>
                             <p style="font-size: 22px; margin: 10px 0;">Total: <strong>${totalScore + phase2Score}</strong> points</p>
-                            <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">Bonus: <strong>$${((totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
+                            <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">Bonus: <strong>$${(Math.max(0, totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
                         </div>
                         <p>Your data will be saved in the next step.</p>
                     </div>
@@ -1223,7 +1221,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <p>Phase 1 score: <strong>${totalScore}</strong> points</p>
                     <p>Phase 2 score: <strong>${phase2Score}</strong> points</p>
                     <p>Total: <strong>${totalScore + phase2Score}</strong> points</p>
-                    <p>Bonus: <strong>$${((totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
+                    <p>Bonus: <strong>$${(Math.max(0, totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
                     <p>Thank you for participating.</p>
                     <p>Press any key to save your data.</p>
                 `;
@@ -1284,6 +1282,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                             phase1_score: totalScore,
                             phase2_score: phase2Score,
                             total_score: totalScore + phase2Score,
+                            bonus_usd: Math.max(0, totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS,
                             phase1_trials_count: phase1Data.length,
                             phase2_trials_count: phase2Data.length,
                             phase3_trials_count: phase3Data.length
