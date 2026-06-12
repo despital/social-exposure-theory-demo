@@ -1,8 +1,16 @@
 # Design Decisions Log
 # Social Exposure Theory Experiment
-# Last updated: 2026-05-19
+# Last updated: 2026-06-12
 
 Decisions are listed newest-first. Each entry states **what** was decided and **why**.
+
+---
+
+## 2026-06-12 — Firebase collection bin per data round
+
+**Decision:** Firebase data is stored under a top-level key defined by `CONFIG.COLLECTION_ROUND` in `src/utils/config.js` (currently `'pilot'`). When a new data collection round begins, change this value (e.g. `'round1'`) before deploying.
+
+**Why:** Separates pilot data from subsequent rounds at the database level without requiring any schema changes. Old records remain intact in their own bin. Tree structure: `<COLLECTION_ROUND>/<participant_id>/`.
 
 ---
 

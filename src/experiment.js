@@ -1299,7 +1299,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     };
 
                     // Save to Firebase with participant ID as key
-                    const dbpath = `participants/${participantKey}`;
+                    const dbpath = `${CONFIG.COLLECTION_ROUND}/${participantKey}`;
 
                     set(ref(database, dbpath), structuredData)
                         .then(() => {

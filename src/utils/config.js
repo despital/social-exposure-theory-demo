@@ -147,5 +147,9 @@ export const CONFIG = {
     },
 
     // Default condition code when ?c= is missing or invalid
-    DEFAULT_CONDITION_CODE: 'EXE'
+    DEFAULT_CONDITION_CODE: 'EXE',
+
+    // Firebase top-level collection key. Change this when starting a new data collection round
+    // (e.g. 'pilot' → 'round1') so old records are preserved in their own bin.
+    COLLECTION_ROUND: 'pilot'
 };

@@ -73,6 +73,11 @@ social-exposure-theory/
 Conditions assigned via URL parameters (?condition=A, ?condition=B, etc.)
 Firebase Realtime Database stores response data keyed by participant ID.
 
+Data is stored under a top-level collection bin defined by `CONFIG.COLLECTION_ROUND`
+in `src/utils/config.js`. Change this key when starting a new data collection round
+to keep records separated (e.g. 'pilot' → 'round1'). Old data stays in its own bin.
+Firebase tree structure: `<COLLECTION_ROUND>/<participant_id>/`.
+
 ---
 
 ## Key Rules
