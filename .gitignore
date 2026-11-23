@@ -6,3 +6,4 @@ data/*.csv
 dist/
 .vscode/
 src/firebase-config.js
+outputs/
