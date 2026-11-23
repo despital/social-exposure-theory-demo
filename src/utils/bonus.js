@@ -1,20 +1,20 @@
 /**
- * Phase 1 score → $5 bonus lottery helpers.
+ * Bad-face trials avoided (m) → $5 bonus lottery helpers.
  * Ladder thresholds live in CONFIG.BONUS_PROBABILITY_LADDER.
  */
 
 import { CONFIG } from './config.js';
 
 /**
- * Map Phase 1 score to bonus win probability in [0, 1].
- * Uses the highest ladder row with minScore <= phase1Score.
- * Scores below the lowest threshold → 0.
+ * Map count of avoided bad-present trials to bonus win probability in [0, 1].
+ * Uses the highest ladder row with minAvoided <= m.
  */
-export function getBonusProbability(phase1Score) {
+export function getBonusProbability(badTrialsAvoided) {
+    const m = badTrialsAvoided;
     const ladder = CONFIG.BONUS_PROBABILITY_LADDER;
     let p = 0;
     for (const row of ladder) {
-        if (phase1Score >= row.minScore) {
+        if (m >= row.minAvoided) {
             p = row.p;
         } else {
             break;
@@ -43,8 +43,13 @@ export function formatBonusPercent(p) {
 
 const HUD_ID = 'bonus-status-hud';
 
-/** Mount or refresh the fixed bottom Phase 1 score + bonus-chance HUD. */
-export function updateBonusHud(phase1Score) {
+/**
+ * Mount or refresh the fixed bottom Phase 1 HUD.
+ * @param {number} phase1Score
+ * @param {number} badTrialsAvoided - m
+ * @param {number} badTrialsTotal - usually 48 under Config A
+ */
+export function updateBonusHud(phase1Score, badTrialsAvoided, badTrialsTotal) {
     let el = document.getElementById(HUD_ID);
     if (!el) {
         el = document.createElement('div');
@@ -52,9 +57,11 @@ export function updateBonusHud(phase1Score) {
         el.className = 'score-display';
         document.body.appendChild(el);
     }
-    const p = getBonusProbability(phase1Score);
+    const p = getBonusProbability(badTrialsAvoided);
     el.innerHTML = `
         <span class="score-display-score">Score: <strong>${phase1Score}</strong></span>
+        <span class="score-display-sep">·</span>
+        <span class="score-display-avoided">Avoided: <strong>${badTrialsAvoided}/${badTrialsTotal}</strong></span>
         <span class="score-display-sep">·</span>
         <span class="score-display-chance">Bonus chance: <strong>${formatBonusPercent(p)}</strong></span>
     `;

@@ -1,40 +1,52 @@
-# Bonus Probability Schedule (Phase 1 Points)
+# Bonus Probability Schedule (Bad-Face Trials Avoided)
 
-Probabilistic bonus keyed to Phase 1 expected points under Config A, using the **blocks-avoided** ladder as the interpretive scale.
+Probabilistic **$5** bonus keyed to how often the participant **avoids hostile (bad) faces** in Phase 1 under Config A.
 
-## Assumptions (EV calculation)
+## Definitions
 
-- Good-face outcome EV: \(0.9(+1) + 0.1(-5) = +0.4\)
-- Bad-face outcome EV: \(0.5(+1) + 0.5(-5) = -2.0\)
-- Each block: 4 trials with one bad face present + 1 all-good trial
-- **Avoided block:** every choice is a good face → block EV \(= 5 \times 0.4 = 2.0\)
-- **Failed block:** pick the bad face on all 4 bad-present trials; good on the all-good trial → block EV \(= 4 \times (-2.0) + 0.4 = -7.6\)
-- For \(k\) blocks avoided (and \(12 - k\) failed):  
-  \(\mathrm{EV}(k) = 2.0\,k + (-7.6)\,(12 - k) = 9.6k - 91.2\)
+- A **bad-present trial** is a Phase 1 panel that includes exactly one bad face (Config A packing: ≤1 bad per trial).
+- Total bad-present trials: \(4 \text{ bad faces} \times 12 \text{ exposures} = \mathbf{48}\).
+- **Avoided** (\(m\)): on a bad-present trial, the participant chooses a **good** face (does not pick the hostile person).
+- All-good trials (12 per session) do not enter \(m\).
+
+## Expected points if you avoid \(m\) of 48
+
+Good-face EV \(= +0.4\); bad-face EV \(= -2.0\); plus 12 all-good trials at \(+0.4\):
+
+\[
+\mathrm{EV}(m) = 2.4m - 91.2
+\]
+
+- \(m = 0\) → −91.2 (always pick bad when present)  
+- \(m = 36\) → −4.8 (≈ **random**, since \(0.75 \times 48 = 36\))  
+- \(m = 48\) → +24 (perfect avoidance)
 
 ## Schedule
 
-\(P(\text{bonus}) = 10\% \times (\text{blocks avoided})\), for \(k = 0 \ldots 10\).
+**Live bonus chance uses \(m\) directly** (not Phase 1 point total — outcomes are noisy).
 
-| Blocks avoided | EV (points) | P(bonus) |
-|----------------|-------------|----------|
-| 0 | −91.2 | 0% |
-| 1 | −81.6 | 10% |
-| 2 | −72.0 | 20% |
-| 3 | −61.2 | 30% |
-| 4 | −52.8 | 40% |
-| 5 | −43.2 | 50% |
-| 6 | −33.6 | 60% |
-| 7 | −24.0 | 70% |
-| 8 | −14.4 | 80% |
-| 9 | −4.8 | 90% |
-| 10 | 4.8 | 100% |
+- \(m \le 36\) (≤ random) → **0%**
+- Then +10% per additional avoid through \(m = 45\) → **90%**
+- \(m \ge 46\) → **100%**
 
-## Applying to an observed Phase 1 score \(S\)
+| Bad-face trials avoided (\(m\)) | EV (points) | P(bonus) |
+|---------------------------------|-------------|----------|
+| 0–36 (≤ random) | ≤ −4.8 | 0% |
+| 37 | −2.4 | 10% |
+| 38 | 0.0 | 20% |
+| 39 | 2.4 | 30% |
+| 40 | 4.8 | 40% |
+| 41 | 7.2 | 50% |
+| 42 | 9.6 | 60% |
+| 43 | 12.0 | 70% |
+| 44 | 14.4 | 80% |
+| 45 | 16.8 | 90% |
+| 46–48 | ≥ 19.2 | 100% |
 
-Assign the bonus probability for the **highest** row whose EV \(\le S\).
+## Applying in the experiment
 
-- \(S < -91.2\) → 0%
-- \(S \ge 4.8\) → 100% (includes avoid 11–12, whose EVs are 14.4 and 24.0)
+1. Count \(m\) after each Phase 1 choice on bad-present trials.  
+2. \(P = \) highest ladder row with `minAvoided ≤ m`.  
+3. At study end, draw once: win $5 with probability \(P\).
 
-Phase 2 slider points are not included in this ladder unless folded into \(S\) by a later design choice.
+Phase 2 does not affect \(m\) or \(P\).

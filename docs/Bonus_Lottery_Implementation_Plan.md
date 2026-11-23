@@ -6,13 +6,13 @@ Replace the current deterministic `points × $0.01` bonus with a **Phase-1-score
 Reference ladder: [Bonus_Probability_Schedule.md](Bonus_Probability_Schedule.md).
 
 ## Locked decisions
-- Probability uses **Phase 1 score only** (`totalScore`), not Phase 2.
+- Probability uses **bad-face trials avoided** \(m\) (chose good on a bad-present Phase 1 trial), not Phase 1 point total and not Phase 2.
+- Config A: 48 bad-present trials; \(m \le 36\) (≈ random) → 0%; \(m = 45\) → 90%; \(m \ge 46\) → 100% (see Bonus_Probability_Schedule.md).
 - Bonus amount if won: **$5.00** (flat).
-- Mapping: highest ladder row with `EV ≤ S` → `P = 10% × k` (`S < −91.2` → 0%; `S ≥ 4.8` → 100%).
 - Draw once at **study end** (before/with final score screen): `Math.random() < p`.
 - Live HUD during **Phase 1 only** (hide or leave frozen after Phase 1 ends).
-- HUD placement: **fixed at the bottom of the screen** (bottom-center or bottom-right), constant across Phase 1 trials — not top (reserved for progress bar + 10 s timer) and not over the face grid.
-- End screens and Firebase stop reporting `points × POINTS_TO_DOLLARS` as the paid bonus; store lottery fields instead.
+- HUD placement: **fixed at the bottom of the screen** (bottom-center), shows Score · Avoided m/48 · Bonus chance.
+- End screens and Firebase store `bad_trials_avoided`, `bonus_probability`, `bonus_won`, `bonus_usd`.
 
 ## Phases affected
 - Consent (short mention)
