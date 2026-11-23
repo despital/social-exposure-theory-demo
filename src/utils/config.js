@@ -100,6 +100,10 @@ export const CONFIG = {
         end: []  // Skip directly to end
     },
 
+    // Per-trial response deadline (Phase 1 choice + each Phase 2 question).
+    // Feedback / memorization screens keep their own fixed durations.
+    RESPONSE_TIME_LIMIT_MS: 10000,
+
     // Phase 2 parameters (single-face slider design)
     // Total faces rated per session (10 novel + 10 encountered); adjustable.
     // With 3 questions per face (approach-avoidance, probability, confidence),

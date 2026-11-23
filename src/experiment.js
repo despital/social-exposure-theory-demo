@@ -26,6 +26,7 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 // Import utilities
 import { CONFIG } from "./utils/config.js";
 import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generateNovelFaces, generatePhase2Trials, generatePhase3Trials } from "./utils/helpers.js";
+import { mountResponseTimer } from "./utils/response_timer.js";
 
 // Import country and language data
 import countries from 'i18n-iso-countries';
@@ -148,6 +149,22 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     let phase2Score = 0;
     let phase2TrialCount = 0;
     let phase2FaceIndex = 0;  // 1-indexed presentation order within Phase 2
+    let phase2TimerHandle = null;
+
+    const clearPhase2Timer = () => {
+        if (phase2TimerHandle) {
+            phase2TimerHandle.clear();
+            phase2TimerHandle = null;
+        }
+    };
+
+    const loadPhase2Timer = () => {
+        clearPhase2Timer();
+        phase2TimerHandle = mountResponseTimer(
+            jsPsych.getDisplayElement(),
+            CONFIG.RESPONSE_TIME_LIMIT_MS
+        );
+    };
 
     console.log('Experiment initialized:', {
         conditionCode: urlParams.conditionCode,
@@ -436,6 +453,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 <h2>Instructions</h2>
                 <p>In this experiment, you will see <strong>4 faces</strong> on each trial.</p>
                 <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
+                <p>You have <strong>10 seconds</strong> to choose on each trial. If time runs out, a face will be selected at random.</p>
                 <p>After your choice, the reward values for <strong>all four people</strong> will be revealed.</p>
                 <p>Each person can give you either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
                 <p><strong>Your goal is to maximize your total score.</strong></p>
@@ -445,6 +463,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 <h2>Instructions</h2>
                 <p>In this experiment, you will see <strong>4 faces</strong> on each trial.</p>
                 <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
+                <p>You have <strong>10 seconds</strong> to choose on each trial. If time runs out, a face will be selected at random.</p>
                 <p>After your choice, you will receive either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
                 <p><strong>Your goal is to maximize your total score.</strong></p>
                 <p>Press any key to start the experiment.</p>
@@ -482,6 +501,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         image_height: 200,
         grid_columns: 2,
         gap: 20,
+        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
+        show_timer: true,
         data: function() {
             const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             return {
@@ -498,6 +519,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             const chosenFace = trialFaces[data.response];
             const outcome = getOutcome(chosenFace);
+            // choice_type is set by the plugin: 'participant' | 'random_timeout'
 
             totalScore += outcome;
             trialCount++;
@@ -691,13 +713,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: `
             <div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Phase 2 Instructions</h2>
-                <p>In this phase, you will see <strong>new faces</strong> one at a time.</p>
+                <p>In this phase, you will see <strong>faces</strong> one at a time.</p>
                 <p>For each face, you will answer <strong>three questions</strong>:</p>
                 <ol style="text-align: left; line-height: 2;">
                     <li>How willing are you to <strong>approach</strong> or <strong>avoid</strong> this person?</li>
                     <li>What is the <strong>probability</strong> that this person will give you a punishment?</li>
                     <li>How <strong>confident</strong> are you in your punishment probability estimate?</li>
                 </ol>
+                <p>You have <strong>10 seconds</strong> for each question. If time runs out, the starting slider value is recorded.</p>
                 <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
                 <p>Press any key to start Phase 2.</p>
             </div>
@@ -727,10 +750,12 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         labels: ['Avoid', 'Neutral', 'Approach'],
         min: 0,
         max: 100,
-        start: 50,
+        slider_start: 50,
         step: 1,
         slider_width: 500,
         require_movement: true,
+        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
+        on_load: loadPhase2Timer,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             phase2FaceIndex++;  // increment once per face (slider is always first question)
@@ -746,14 +771,17 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             };
         },
         on_finish: function(data) {
+            clearPhase2Timer();
             const face = jsPsych.evaluateTimelineVariable('face');
-            data.slider_rating = data.response;
+            const timedOut = data.rt == null || data.response == null;
+            data.response_type = timedOut ? 'no_response' : 'response';
+            const rating = timedOut ? 50 : data.response;
+            data.slider_rating = rating;
 
             // Scoring based on slider position relative to face's good/bad status:
             //   Good face: approach (>50) = correct, avoid (<50) = incorrect
             //   Bad face:  avoid (<50) = correct, approach (>50) = incorrect
             //   Exactly 50 = neutral (0 points)
-            const rating = data.slider_rating;
             let outcome;
             if (rating === 50) {
                 outcome = 0;
@@ -794,11 +822,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         },
         min: 0,
         max: 100,
-        start: 50,
+        slider_start: 50,
         step: 1,
         slider_width: 500,
         labels: ['0%', '25%', '50%', '75%', '100%'],
         require_movement: true,
+        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
+        on_load: loadPhase2Timer,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
@@ -813,7 +843,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             };
         },
         on_finish: function(data) {
-            data.probability_punishment = data.response;
+            clearPhase2Timer();
+            const timedOut = data.rt == null || data.response == null;
+            data.response_type = timedOut ? 'no_response' : 'response';
+            data.probability_punishment = timedOut ? 50 : data.response;
             delete data.stimulus;
             delete data.slider_start;
             delete data.plugin_version;
@@ -837,11 +870,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         },
         min: 0,
         max: 100,
-        start: 50,
+        slider_start: 50,
         step: 1,
         slider_width: 500,
         labels: ['Not at all confident', 'Somewhat confident', 'Very confident', 'Extremely confident'],
         require_movement: true,
+        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
+        on_load: loadPhase2Timer,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
@@ -856,7 +891,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             };
         },
         on_finish: function(data) {
-            data.confidence_rating = data.response;
+            clearPhase2Timer();
+            const timedOut = data.rt == null || data.response == null;
+            data.response_type = timedOut ? 'no_response' : 'response';
+            data.confidence_rating = timedOut ? 50 : data.response;
 
             phase2TrialCount++;
             const phase2ProgressEnd = 1.0;

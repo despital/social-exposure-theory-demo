@@ -113,3 +113,40 @@ body {
 .feedback-value.negative {
     color: red;
 }
+
+// Per-trial response countdown (Phase 1 choice + Phase 2 questions)
+.response-timer {
+    max-width: 420px;
+    margin: 0 auto 16px;
+    text-align: center;
+}
+
+.response-timer-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.response-timer-track {
+    height: 10px;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.response-timer-fill {
+    height: 100%;
+    width: 100%;
+    background-color: #555;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.response-timer-urgent .response-timer-fill {
+    background-color: #e6a100; // amber — avoid red (group color)
+}
+
+.response-timer-urgent .response-timer-label {
+    color: #9a6b00;
+}

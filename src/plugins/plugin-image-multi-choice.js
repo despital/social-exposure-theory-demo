@@ -3,7 +3,10 @@
  *
  * Displays multiple images in a grid and allows participant to click one to make a choice.
  * Records which image was clicked and reaction time.
+ * Optional trial_duration shows a countdown bar; on timeout a random face is chosen.
  */
+
+import { mountResponseTimer } from '../utils/response_timer.js';
 
 const info = {
     name: "image-multi-choice",
@@ -39,6 +42,16 @@ const info = {
             type: "INT",
             default: 20,
         },
+        /** Response deadline in ms; null = wait indefinitely */
+        trial_duration: {
+            type: "INT",
+            default: null,
+        },
+        /** Show countdown bar when trial_duration is set */
+        show_timer: {
+            type: "BOOL",
+            default: true,
+        },
     },
 };
 
@@ -48,18 +61,16 @@ class ImageMultiChoicePlugin {
     }
 
     trial(display_element, trial) {
-        // Store trial start time
         const startTime = performance.now();
+        let trialEnded = false;
+        let timerHandle = null;
 
-        // Build HTML
         let html = "";
 
-        // Add prompt if provided
         if (trial.prompt !== null) {
             html += `<div class="image-multi-choice-prompt">${trial.prompt}</div>`;
         }
 
-        // Create grid container
         html += `<div class="image-multi-choice-container" style="
             display: grid;
             grid-template-columns: repeat(${trial.grid_columns}, 1fr);
@@ -69,7 +80,6 @@ class ImageMultiChoicePlugin {
             justify-content: center;
         ">`;
 
-        // Add each image
         trial.images.forEach((image, index) => {
             html += `
                 <div class="image-multi-choice-option" data-choice="${index}" style="
@@ -95,10 +105,8 @@ class ImageMultiChoicePlugin {
 
         html += "</div>";
 
-        // Display HTML
         display_element.innerHTML = html;
 
-        // Add hover effect via CSS
         const style = document.createElement('style');
         style.textContent = `
             .image-multi-choice-option:hover {
@@ -108,35 +116,50 @@ class ImageMultiChoicePlugin {
         `;
         document.head.appendChild(style);
 
-        // Add click handlers
+        const finish = (responseIndex, choiceType, rt) => {
+            if (trialEnded) return;
+            trialEnded = true;
+            if (timerHandle) timerHandle.clear();
+
+            const trial_data = {
+                rt: rt,
+                response: responseIndex,
+                choice_type: choiceType,
+                images: trial.images.map(img => ({
+                    src: img.src,
+                    color: img.color,
+                    ...img.data
+                }))
+            };
+
+            display_element.innerHTML = '';
+            style.remove();
+            this.jsPsych.finishTrial(trial_data);
+        };
+
         const choices = display_element.querySelectorAll('.image-multi-choice-option');
         choices.forEach((choice, index) => {
             choice.addEventListener('click', () => {
-                // Calculate reaction time
-                const endTime = performance.now();
-                const rt = Math.round(endTime - startTime);
-
-                // Gather trial data
-                const trial_data = {
-                    rt: rt,
-                    response: index,
-                    images: trial.images.map(img => ({
-                        src: img.src,
-                        color: img.color,
-                        ...img.data
-                    }))
-                };
-
-                // Clear display
-                display_element.innerHTML = '';
-
-                // Remove style element
-                style.remove();
-
-                // End trial
-                this.jsPsych.finishTrial(trial_data);
+                const rt = Math.round(performance.now() - startTime);
+                finish(index, 'participant', rt);
             });
         });
+
+        if (trial.trial_duration != null && trial.trial_duration > 0) {
+            if (trial.show_timer !== false) {
+                timerHandle = mountResponseTimer(display_element, trial.trial_duration, {
+                    onTimeout: () => {
+                        const randomIndex = Math.floor(Math.random() * trial.images.length);
+                        finish(randomIndex, 'random_timeout', null);
+                    }
+                });
+            } else {
+                this.jsPsych.pluginAPI.setTimeout(() => {
+                    const randomIndex = Math.floor(Math.random() * trial.images.length);
+                    finish(randomIndex, 'random_timeout', null);
+                }, trial.trial_duration);
+            }
+        }
     }
 }
 
