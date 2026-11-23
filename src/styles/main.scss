@@ -52,16 +52,28 @@ body {
     display: block;
 }
 
+// Phase 1 live status: score + $5 bonus chance (fixed bottom)
 .score-display {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #f0f0f0;
-    padding: 15px 25px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background-color: rgba(245, 245, 245, 0.95);
+    border: 1px solid #ccc;
+    padding: 10px 20px;
     border-radius: 8px;
-    font-size: 18px;
-    font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+    pointer-events: none; // never block face clicks
+}
+
+.score-display-sep {
+    margin: 0 10px;
+    color: #999;
 }
 
 .feedback {

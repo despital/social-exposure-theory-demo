@@ -51,9 +51,26 @@ export const CONFIG = {
     REWARD_VALUE: 1,
     PUNISHMENT_VALUE: -5,
 
-    // Points-to-money conversion (shown at end of experiment)
-    // 1 point = $0.01 → 100 points = $1.00 (subject to change)
+    // Legacy points→dollars rate (no longer used for paid bonus; lottery replaces it)
     POINTS_TO_DOLLARS: 0.01,
+
+    // Phase 1 score → probability of winning a flat $5 bonus (see docs/Bonus_Probability_Schedule.md)
+    BONUS_AMOUNT_USD: 5,
+    // Ordered by minScore ascending. P = highest row with minScore <= phase1Score.
+    BONUS_PROBABILITY_LADDER: [
+        { minScore: -91.2, p: 0.0 },
+        { minScore: -81.6, p: 0.1 },
+        { minScore: -72.0, p: 0.2 },
+        { minScore: -61.2, p: 0.3 },
+        { minScore: -52.8, p: 0.4 },
+        { minScore: -43.2, p: 0.5 },
+        { minScore: -33.6, p: 0.6 },
+        { minScore: -24.0, p: 0.7 },
+        { minScore: -14.4, p: 0.8 },
+        { minScore: -4.8,  p: 0.9 },
+        { minScore: 4.8,   p: 1.0 }
+    ],
+
 
     // Firebase configuration - Social Exposure Theory 2026
     FIREBASE_CONFIG: {

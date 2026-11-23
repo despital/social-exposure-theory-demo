@@ -27,6 +27,13 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 import { CONFIG } from "./utils/config.js";
 import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generateNovelFaces, generatePhase2Trials, generatePhase3Trials } from "./utils/helpers.js";
 import { mountResponseTimer } from "./utils/response_timer.js";
+import {
+    getBonusProbability,
+    drawBonus,
+    formatBonusPercent,
+    updateBonusHud,
+    removeBonusHud
+} from "./utils/bonus.js";
 
 // Import country and language data
 import countries from 'i18n-iso-countries';
@@ -132,6 +139,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     // Track score
     let totalScore = 0;
+    // Drawn once at end from Phase 1 score (see utils/bonus.js)
+    let bonusResult = null;
+    const ensureBonusDrawn = () => {
+        if (!bonusResult) {
+            bonusResult = drawBonus(getBonusProbability(totalScore));
+        }
+        return bonusResult;
+    };
     let trialCount = 0;
 
     // Generate novel faces for Phase 2
@@ -451,22 +466,19 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         const instructionText = urlParams.p1Type === 'control'
             ? `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
-                <p>In this experiment, you will see <strong>4 faces</strong> on each trial.</p>
-                <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
-                <p>You have <strong>10 seconds</strong> to choose on each trial. If time runs out, a face will be selected at random.</p>
-                <p>After your choice, the reward values for <strong>all four people</strong> will be revealed.</p>
-                <p>Each person can give you either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
-                <p><strong>Your goal is to maximize your total score.</strong></p>
-                <p>Press any key to start the experiment.</p>
+                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>10 seconds</strong>; if time runs out, a face is selected at random.</p>
+                <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
+                <p>After your choice, outcomes for <strong>all four people</strong> will be revealed. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
+                <p>Your Phase 1 points determine your chance of winning a <strong>$${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
+                <p>Press any key to start.</p>
             </div>`
             : `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
-                <p>In this experiment, you will see <strong>4 faces</strong> on each trial.</p>
-                <p>Your task is to choose <strong>one person</strong> to interact with by clicking on their face.</p>
-                <p>You have <strong>10 seconds</strong> to choose on each trial. If time runs out, a face will be selected at random.</p>
-                <p>After your choice, you will receive either a <strong>reward (+1)</strong> or a <strong>punishment (-5)</strong>.</p>
-                <p><strong>Your goal is to maximize your total score.</strong></p>
-                <p>Press any key to start the experiment.</p>
+                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>10 seconds</strong>; if time runs out, a face is selected at random.</p>
+                <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
+                <p>After your choice, you will see the outcome for the person you selected. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
+                <p>Your Phase 1 points determine your chance of winning a <strong>$${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
+                <p>Press any key to start.</p>
             </div>`;
 
         const instructions = {
@@ -474,6 +486,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: instructionText,
         on_start: function() {
             jsPsych.progressBar.progress = 0;
+            updateBonusHud(totalScore);
         }
     };
     timeline.push(instructions);
@@ -530,6 +543,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.chosen_face_is_good = chosenFace.isGood;
             data.outcome = outcome;
             data.total_score = totalScore;
+            data.bonus_probability = getBonusProbability(totalScore);
+            updateBonusHud(totalScore);
             // RT is automatically recorded by the plugin in data.rt
 
             // Control condition: compute and store outcomes for all 4 faces
@@ -648,6 +663,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <p>Great job! You've finished the first part of the experiment.</p>
                     <p>Press any key to continue.</p>
                 `;
+            },
+            on_start: function() {
+                removeBonusHud();
             },
             post_trial_gap: 500,
             data: {
@@ -1226,6 +1244,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         const finalThankYou = {
             type: HtmlButtonResponsePlugin,
             stimulus: function() {
+                const bonus = ensureBonusDrawn();
+                const bonusLine = bonus.won
+                    ? `You won the <strong>$${bonus.amount_usd.toFixed(2)}</strong> bonus!`
+                    : `No bonus this time.`;
                 return `
                     <div style="max-width: 600px; margin: auto;">
                         <h1>Thank You!</h1>
@@ -1234,8 +1256,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                         <div style="background-color: #f0f0f0; padding: 20px; border-radius: 10px; margin: 20px 0;">
                             <p style="font-size: 18px; margin: 10px 0;">Phase 1 Score: <strong>${totalScore}</strong> points</p>
                             <p style="font-size: 18px; margin: 10px 0;">Phase 2 Score: <strong>${phase2Score}</strong> points</p>
-                            <p style="font-size: 22px; margin: 10px 0;">Total: <strong>${totalScore + phase2Score}</strong> points</p>
-                            <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">Bonus: <strong>$${(Math.max(0, totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
+                            <p style="font-size: 18px; margin: 10px 0;">Bonus chance (from Phase 1): <strong>${formatBonusPercent(bonus.probability)}</strong></p>
+                            <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">${bonusLine}</p>
                         </div>
                         <p>Your data will be saved in the next step.</p>
                     </div>
@@ -1254,12 +1276,16 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         const finish = {
             type: HtmlKeyboardResponsePlugin,
             stimulus: function() {
+                const bonus = ensureBonusDrawn();
+                const bonusLine = bonus.won
+                    ? `You won the <strong>$${bonus.amount_usd.toFixed(2)}</strong> bonus!`
+                    : `No bonus this time.`;
                 return `
                     <h2>Experiment Complete!</h2>
                     <p>Phase 1 score: <strong>${totalScore}</strong> points</p>
                     <p>Phase 2 score: <strong>${phase2Score}</strong> points</p>
-                    <p>Total: <strong>${totalScore + phase2Score}</strong> points</p>
-                    <p>Bonus: <strong>$${(Math.max(0, totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS).toFixed(2)}</strong></p>
+                    <p>Bonus chance (from Phase 1): <strong>${formatBonusPercent(bonus.probability)}</strong></p>
+                    <p style="color: #2e7d32;">${bonusLine}</p>
                     <p>Thank you for participating.</p>
                     <p>Press any key to save your data.</p>
                 `;
@@ -1320,7 +1346,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                             phase1_score: totalScore,
                             phase2_score: phase2Score,
                             total_score: totalScore + phase2Score,
-                            bonus_usd: Math.max(0, totalScore + phase2Score) * CONFIG.POINTS_TO_DOLLARS,
+                            bonus_probability: ensureBonusDrawn().probability,
+                            bonus_won: ensureBonusDrawn().won,
+                            bonus_usd: ensureBonusDrawn().amount_usd,
                             phase1_trials_count: phase1Data.length,
                             phase2_trials_count: phase2Data.length,
                             phase3_trials_count: phase3Data.length
