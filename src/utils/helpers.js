@@ -186,9 +186,15 @@ export function assignGoodBad(faces, jsPsych) {
  * generateFaces() and requires no further logic here.
  *
  * Trials are built in EXPOSURES_PER_FACE blocks. In each block every face
- * appears exactly once: the full face array is shuffled, then chunked into
- * groups of FACES_PER_TRIAL. Because each face appears at most once per block,
- * no face can appear twice in the same trial panel.
+ * appears exactly once. Panels are packed so that **at most one bad face**
+ * (`isGood === false`) appears in any trial of FACES_PER_TRIAL faces:
+ *   - For each bad face: one panel of 1 bad + (FACES_PER_TRIAL − 1) goods
+ *   - Remaining goods: all-good panels of FACES_PER_TRIAL
+ * Panel order (and within-panel order) is shuffled each block.
+ *
+ * Requires faces to already have `isGood` from assignGoodBad(). Under
+ * Config A (4 bad, 16 good, panel size 4) each block has 4 one-bad panels
+ * and 1 all-good panel.
  *
  * Total trials = TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL = 60.
  *
@@ -199,27 +205,67 @@ export function assignGoodBad(faces, jsPsych) {
  *     faces: [...]       // array of FACES_PER_TRIAL unique face objects
  *   }
  *
- * @param {Array<object>} faces  - Face objects from generateFaces().
+ * @param {Array<object>} faces  - Face objects from generateFaces() + assignGoodBad().
  * @param {object}        jsPsych - The jsPsych instance (provides randomization).
  * @returns {Array<object>} Flat array of all trial objects in presentation order.
  */
 export function generateTrials(faces, jsPsych) {
+    const k = CONFIG.FACES_PER_TRIAL;
     const trials = [];
 
     for (let block = 0; block < CONFIG.EXPOSURES_PER_FACE; block++) {
-        // Each block is one full shuffle of the face pool, chunked into panels of 4.
-        // Shuffling independently per block randomizes which faces appear together
-        // while guaranteeing every face appears exactly once per block.
-        const shuffled = jsPsych.randomization.shuffle([...faces]);
-        const trialsPerBlock = Math.floor(shuffled.length / CONFIG.FACES_PER_TRIAL);
+        const bad = jsPsych.randomization.shuffle(
+            faces.filter(f => f.isGood === false)
+        );
+        const good = jsPsych.randomization.shuffle(
+            faces.filter(f => f.isGood === true)
+        );
 
-        for (let t = 0; t < trialsPerBlock; t++) {
+        if (bad.length + good.length !== faces.length) {
+            throw new Error(
+                'generateTrials: every face must have isGood set by assignGoodBad() before trial packing.'
+            );
+        }
+
+        // Each bad face needs (k - 1) goods to form a ≤1-bad panel
+        const goodsPerBadPanel = k - 1;
+        const goodsNeededForBad = bad.length * goodsPerBadPanel;
+        if (goodsNeededForBad > good.length) {
+            throw new Error(
+                `generateTrials: cannot enforce ≤1 bad per trial — ${bad.length} bad faces need ` +
+                `${goodsNeededForBad} good co-faces, but only ${good.length} good faces exist in this block.`
+            );
+        }
+
+        const remainingGoods = good.length - goodsNeededForBad;
+        if (remainingGoods % k !== 0) {
+            throw new Error(
+                `generateTrials: remaining good faces (${remainingGoods}) not divisible by FACES_PER_TRIAL (${k}).`
+            );
+        }
+
+        const panels = [];
+        let goodIdx = 0;
+
+        for (const badFace of bad) {
+            const panel = [badFace, ...good.slice(goodIdx, goodIdx + goodsPerBadPanel)];
+            goodIdx += goodsPerBadPanel;
+            panels.push(jsPsych.randomization.shuffle(panel));
+        }
+
+        while (goodIdx < good.length) {
+            panels.push(jsPsych.randomization.shuffle(good.slice(goodIdx, goodIdx + k)));
+            goodIdx += k;
+        }
+
+        const orderedPanels = jsPsych.randomization.shuffle(panels);
+        orderedPanels.forEach((panel, idx) => {
             trials.push({
                 block: block + 1,
-                trialInBlock: t + 1,
-                faces: shuffled.slice(t * CONFIG.FACES_PER_TRIAL, (t + 1) * CONFIG.FACES_PER_TRIAL)
+                trialInBlock: idx + 1,
+                faces: panel
             });
-        }
+        });
     }
 
     return trials;
