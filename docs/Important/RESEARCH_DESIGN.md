@@ -37,9 +37,9 @@ Controls the **number of unique group members** encountered during Phase 1. Ever
 
 | Level | Red faces (unique) | Blue faces (unique) |
 |---|---|---|
-| Equal | 20 | 20 |
-| Majority-Red | 32 | 8 |
-| Majority-Blue | 8 | 32 |
+| Equal | 10 | 10 |
+| Majority-Red | 15 | 5 |
+| Majority-Blue | 5 | 15 |
 
 > Majority-Red and Majority-Blue are the same manipulation with color counterbalanced. They can be collapsed into a single "Majority" factor with majority-group color as a covariate.
 
@@ -103,43 +103,43 @@ Each face is secretly labeled **good** or **bad** (never revealed to participant
 | Good person | 90% | 10% | `GOOD_PERSON_PROBS` |
 | Bad person | 50% | 50% | `BAD_PERSON_PROBS` |
 
-Both groups have **identical** good:bad ratios (70:30, `GOOD_BAD_RATIO: [0.7, 0.3]`). Any group-level difference in behavior reflects exposure frequency, not outcome structure.
+Both groups have **identical** good:bad ratios (80:20, `GOOD_BAD_RATIO: [0.8, 0.2]`). Any group-level difference in behavior reflects exposure frequency, not outcome structure.
 
 ### Trial Generation & Sampling
 
-Phase 1 uses a **block design**: `EXPOSURES_PER_FACE = 12` blocks, each independently shuffling all 40 faces and chunking them into groups of 4. This guarantees exactly **12 on-screen appearances per face** — deterministic, not probabilistic.
+Phase 1 uses a **block design**: `EXPOSURES_PER_FACE = 12` blocks, each independently shuffling all 20 faces and chunking them into groups of 4. This guarantees exactly **12 on-screen appearances per face** — deterministic, not probabilistic.
 
 | Property | Value |
 |---|---|
-| Total faces | 40 |
+| Total faces | 20 |
 | Blocks (= exposures per face) | 12 |
-| Trials per block | 40 / 4 = **10** |
-| Total Phase 1 trials | **120** |
+| Trials per block | 20 / 4 = **5** |
+| Total Phase 1 trials | **60** |
 | E[interactions per face] | 12 / 4 = **3.0** |
 | P(≥1 interaction with any face) | 1 − (¾)¹² ≈ **96.8%** |
 
-Sampling strategy: in the majority condition, the majority group needs 32 faces from a pool of 32, and the minority group needs 8 from a pool of 8 — exact, no oversampling needed at N=40. Within-trial duplicates are impossible (each block is a single shuffle of all 40 faces).
+Sampling strategy: in the majority condition, the majority group needs 15 faces and the minority group needs 5 — exact, no oversampling needed at N=20. Within-trial duplicates are impossible (each block is a single shuffle of all 20 faces).
 
 ### Good/Bad Counts by Condition
 
-`GOOD_BAD_RATIO = 0.70` applied independently within each color group.
+`GOOD_BAD_RATIO = 0.80` applied independently within each color group (exact integers at N=20).
 
 | Condition | Red (N) | Good red | Bad red | Blue (N) | Good blue | Bad blue |
 |---|---|---|---|---|---|---|
-| Equal | 20 | 14 | 6 | 20 | 14 | 6 |
-| Majority-Red | 32 | 22 | 10 | 8 | **6 (75%)** | 2 |
-| Majority-Blue | 8 | **6 (75%)** | 2 | 32 | 22 | 10 |
+| Equal | 10 | 8 | 2 | 10 | 8 | 2 |
+| Majority-Red | 15 | 12 | 3 | 5 | 4 | 1 |
+| Majority-Blue | 5 | 4 | 1 | 15 | 12 | 3 |
 
-> **Rounding note:** At N=40, the minority group has 8 faces. 70% × 8 = 5.6, which rounds to 6 → **75% good-face rate** (vs. target 70%, +5 pp deviation). Should be noted in preregistration.
+> **Note:** Bad rate is **20% in every color group** (equal and majority–minority). Majority–minority uses a **3:1** unique-member split (15 vs 5).
 
 ### Diagnostic Quality
 
 ```
-P(face was bad | punished)  = (0.50 × 0.30) / (0.50 × 0.30 + 0.10 × 0.70) ≈ 68%
-P(face was good | punished) ≈ 32%  (noise)
+P(face was bad | punished)  = (0.50 × 0.20) / (0.50 × 0.20 + 0.10 × 0.80) ≈ 56%
+P(face was good | punished) ≈ 44%  (noise)
 ```
 
-~1 in 3 punishments come from good faces, creating deliberate ambiguity that requires sustained learning to overcome.
+Punishments are still ambiguous (good faces punish 10% of the time), so sustained learning is required.
 
 ---
 
@@ -163,12 +163,12 @@ No feedback is shown during Phase 2. Hidden outcomes are calculated using the sa
 | — Familiar (Phase 1) faces | **5** (adjustable) | `PHASE2_FAMILIAR_FACES` |
 | — Novel faces | **15** | derived |
 | Novel face pool | 120 identities (60 per color) | `TOTAL_NOVEL_FACES` |
-| Familiar face sampling | Random subset of the 40 Phase 1 faces encountered | `generatePhase2Trials()` |
+| Familiar face sampling | 5 red + 5 blue from the 20 Phase 1 faces | `generatePhase2Trials()` |
 | Questions per face | 3 (one slider screen each) | — |
 | Total Phase 2 slider responses | 60 | — |
 | Est. duration | ~12 min | — |
 | Novel face sampling | Without replacement (pool ≫ session count) | `generatePhase2Trials()` |
-| Hidden scoring | Good/bad ratio same as Phase 1 (70:30) | `GOOD_BAD_RATIO` |
+| Hidden scoring | Good/bad ratio same as Phase 1 (80:20) | `GOOD_BAD_RATIO` |
 
 ### Face Composition by P2 Exposure Level
 
@@ -186,7 +186,7 @@ Ratios: equal = 50/50, majority = 80/20, configured in `PHASE2_EXPOSURE_RATIOS`.
 
 ## 5. Phase 3 — Explicit Rating
 
-All 40 Phase 1 faces are shown one at a time in randomized order. For each face, participants answer **one question**:
+All 20 Phase 1 faces are shown one at a time in randomized order. For each face, participants answer **one question**:
 
 - **Punishment probability:** "What is the probability that this person will give you a punishment?" (0%–100% slider)
 
@@ -194,20 +194,20 @@ No feedback is provided. Phase 3 allows direct comparison of explicit probabilit
 
 | Parameter | Value |
 |---|---|
-| Faces rated | All 40 Phase 1 faces |
+| Faces rated | All 20 Phase 1 faces |
 | Questions per face | 1 |
-| Total trials | 40 |
-| Est. duration | ~7 min |
+| Total trials | 20 |
+| Est. duration | ~4 min |
 
 ---
 
 ## 6. Stimuli
 
-| Set | Identities | Images | Naming convention | Location |
+| Set | Identities used | Images on disk | Naming convention | Location |
 |---|---|---|---|---|
-| Phase 1 base faces | 40 | 80 (40 red + 40 blue) | `face_000_red/blue.png` – `face_039_red/blue.png` | `stimuli/faces/` |
+| Phase 1 base faces | **20** (`TOTAL_FACES`) | 80 files (`face_000`–`039` red/blue; IDs 20–39 unused) | `face_000_red/blue.png` – `face_019_red/blue.png` (active) | `stimuli/faces/` |
 | Phase 2 novel faces | 120 | 240 (120 red + 120 blue) | `face_n001_red/blue.png` – `face_n120_red/blue.png` | `stimuli/faces/` |
-| **Total** | **160** | **320** | | |
+| **Total** | **140** used | **320** files | | |
 
 All faces generated with FaceGen. Colored backgrounds added via `scripts/generate_colored_faces.py`. Original source images stored in `stimuli/fg_faces/`.
 
@@ -241,7 +241,7 @@ Stored at `participants/{participant_id}/metadata`:
 |---|---|---|
 | `block` | int 1–12 | Block number |
 | `trial_in_block` | int 1–10 | Trial index within block |
-| `trial_number` | int | Global 1-indexed trial counter (across all 120 trials) |
+| `trial_number` | int | Global 1-indexed trial counter (across all 60 Phase 1 choice trials) |
 | `faces_in_trial` | `[{id, color, is_good}]` | All 4 faces shown in the panel |
 | `chosen_face_id` | int | ID of chosen face |
 | `chosen_face_color` | `red` / `blue` | Group of chosen face |
@@ -378,7 +378,7 @@ Individual-level regressors (`ses_ladder`, `political_orientation`, `clarity_rat
 
 ### Pilot-Specific Goal: Parameter Adequacy Evaluation
 
-The pilot's **primary goal** is to verify that the parameter combination (`N=40`, `E=12`, `GOOD_BAD_RATIO=70:30`, diagnosticity = 90%/50%) produces learnable Phase 1 outcomes. Main-study parameters are contingent on this.
+The pilot's **primary goal** is to verify that the parameter combination (`N=20`, `E=12`, `GOOD_BAD_RATIO=80:20`, diagnosticity = 90%/50%) produces learnable Phase 1 outcomes. Main-study parameters are contingent on this.
 
 **Behavioral indicators** (computed from Phase 1 trials):
 
@@ -422,13 +422,13 @@ All behavioral indicators pass but S1 clarity low?
 
 | Parameter | Current value | Config key | Notes |
 |---|---|---|---|
-| Total Phase 1 faces | 40 | `TOTAL_FACES` | Pilot value; main study may increase |
+| Total Phase 1 faces | 20 | `TOTAL_FACES` | Configuration A; equal 10/10, MM 15/5 |
 | Exposures per face | 12 | `EXPOSURES_PER_FACE` | Increase to 16 if B1/B3 fail |
-| Good:bad ratio | 70:30 | `GOOD_BAD_RATIO` | Both groups identical; minority rounds to 75% at N=40 |
+| Good:bad ratio | 80:20 | `GOOD_BAD_RATIO` | Both groups identical; exact integers at N=20 |
 | Good-person P(reward) | 0.9 | `GOOD_PERSON_PROBS.reward` | May raise to 0.95 if B6 fails |
 | Bad-person P(reward) | 0.5 | `BAD_PERSON_PROBS.reward` | May lower to 0.35 if B5 fails |
-| Phase 2 faces per session | 20 | `PHASE2_TOTAL_TRIALS` | With 3 questions/face, balances depth vs. time |
-| Phase 2 familiar faces | 5 | `PHASE2_FAMILIAR_FACES` | Random subset of the 40 Phase 1 faces; adjustable |
+| Phase 2 faces per session | 20 | `PHASE2_TOTAL_TRIALS` | 5 novel-red + 5 novel-blue + 5 enc-red + 5 enc-blue |
+| Phase 2 familiar faces | 10 | (half of `PHASE2_TOTAL_TRIALS`) | 5 per color from the 20 Phase 1 faces |
 | Phase 2 exposure (Factor 3) | Equal only (pilot) | `PILOT_MODE` | Re-enable via `PILOT_MODE: false` for main study |
 | Phase 3 inclusion | Included | — | May drop if experiment time > 45 min |
 | Points-to-money | 100 pts = $1 | `POINTS_TO_DOLLARS` | Subject to Prolific budget |

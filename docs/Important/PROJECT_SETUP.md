@@ -134,7 +134,7 @@ Activated via `?debug=true`. All settings configurable in `config.js → DEBUG_M
 | `SKIP_DEMOGRAPHICS` | `true` | Skip demographics survey |
 | `REDUCE_PHASE1_TRIALS` | `true` | 1 exposure instead of 12 (10 trials total) |
 | `REDUCE_PHASE2_TRIALS` | `true` | 6 faces (3 red + 3 blue) instead of 20 |
-| `REDUCE_PHASE3_TRIALS` | `true` | 5 faces instead of 40 |
+| `REDUCE_PHASE3_TRIALS` | `true` | 5 faces instead of 20 |
 | `ENABLE_AUTOCLICK` | `false` | Override with `?autoclick=true` in URL |
 
 **Section jumping** (test one phase in isolation):
@@ -159,12 +159,12 @@ All parameters are centralized in `src/utils/config.js`. Never hardcode values i
 
 | Key | Value | Notes |
 |---|---|---|
-| `TOTAL_FACES` | `40` | Unique Phase 1 face identities |
+| `TOTAL_FACES` | `20` | Unique Phase 1 face identities (Configuration A) |
 | `EXPOSURES_PER_FACE` | `12` | On-screen appearances per face; also = block count |
 | `FACES_PER_TRIAL` | `4` | Faces shown per trial panel |
-| `FACE_COLOR_SPLIT.equal` | `{red: 20, blue: 20}` | — |
-| `FACE_COLOR_SPLIT.'majority-minority'` | `{majority: 32, minority: 8}` | Minority good-rate rounds to 75% (6/8) |
-| `GOOD_BAD_RATIO` | `[0.7, 0.3]` (both groups) | 70% good, 30% bad |
+| `FACE_COLOR_SPLIT.equal` | `{red: 10, blue: 10}` | — |
+| `FACE_COLOR_SPLIT.'majority-minority'` | `{majority: 15, minority: 5}` | 3:1 split; 20% bad in both groups |
+| `GOOD_BAD_RATIO` | `[0.8, 0.2]` (both groups) | 80% good, 20% bad |
 | `GOOD_PERSON_PROBS` | `{reward: 0.9, punishment: 0.1}` | — |
 | `BAD_PERSON_PROBS` | `{reward: 0.5, punishment: 0.5}` | — |
 | `REWARD_VALUE` | `1` | Points per reward |

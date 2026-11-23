@@ -8,33 +8,33 @@ export const CONFIG = {
     // Every face — regardless of color — appears this many times in Phase 1.
     // Valid values: any positive integer, subject to the constraint that
     //   TOTAL_FACES must be divisible by FACES_PER_TRIAL
-    //   (currently 40 / 4 = 10, so any positive integer works).
+    //   (currently 20 / 4 = 5 trials per block).
     // Total Phase 1 trials = TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL
-    //   e.g. 40 × 12 / 4 = 120 trials, 40 × 8 / 4 = 80 trials.
+    //   e.g. 20 × 12 / 4 = 60 trials.
     EXPOSURES_PER_FACE: 12,
     FACES_PER_TRIAL: 4,
 
-    // Stimuli — Phase 1 (base faces)
-    TOTAL_FACES: 40,
+    // Stimuli — Phase 1 (base faces) — Configuration A
+    TOTAL_FACES: 20,
 
     // Number of faces assigned to each color group, per Phase 1 exposure condition.
     // The majority-minority split controls how many UNIQUE members of each group
     // the participant encounters — every face still appears EXPOSURES_PER_FACE times.
     // 'majority' and 'minority' are resolved to red/blue at runtime via majorityGroup.
-    // Note: at N=40, minority good-face ratio rounds to 75% (6/8) vs. target 70%.
+    // At N=20 with 80:20 good:bad, both colors share the same bad rate (exact integers).
     FACE_COLOR_SPLIT: {
-        'equal':             { red: 20, blue: 20 },
-        'majority-minority': { majority: 32, minority: 8 }
+        'equal':             { red: 10, blue: 10 },
+        'majority-minority': { majority: 15, minority: 5 }  // 3:1
     },
 
     // Stimuli — Phase 2 (novel faces)
     // Named face_n001_red.png … face_n120_red.png (and _blue), stored in stimuli/faces/
     TOTAL_NOVEL_FACES: 120,
 
-    // Good/Bad person ratios (modifiable per group)
+    // Good/Bad person ratios (modifiable per group) — Configuration A: 80% good, 20% bad
     GOOD_BAD_RATIO: {
-        red: [0.7, 0.3],   // [good_ratio, bad_ratio]
-        blue: [0.7, 0.3]
+        red: [0.8, 0.2],   // [good_ratio, bad_ratio]
+        blue: [0.8, 0.2]
     },
 
     // Reward/punishment probabilities
@@ -101,10 +101,11 @@ export const CONFIG = {
     },
 
     // Phase 2 parameters (single-face slider design)
-    // Total novel faces shown per session; adjustable.
+    // Total faces rated per session (10 novel + 10 encountered); adjustable.
     // With 3 questions per face (approach-avoidance, probability, confidence),
-    // 20 faces ≈ 12 min — comparable to Phase 1 (120 trials × 5 s = 10 min).
-    // Ratio: 40 learned faces (Phase 1) : 20 novel faces (Phase 2) = 2:1.
+    // 20 faces ≈ 12 min — comparable to Phase 1 (60 trials × ~5 s ≈ 5 min).
+    // Ratio: 20 learned faces (Phase 1) : 20 Phase-2 ratings = 1:1 identities vs ratings.
+    // Minority size (5) equals the per-color Phase 2 bucket (PHASE2_TOTAL_TRIALS/4 = 5).
     PHASE2_TOTAL_TRIALS: 20,
     // Red:blue split per Phase 2 Exposure level (must sum to 1.0)
     PHASE2_EXPOSURE_RATIOS: {

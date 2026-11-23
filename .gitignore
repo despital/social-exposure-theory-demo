@@ -4,6 +4,7 @@ data/*.csv
 *.log
 .env
 dist/
+outputs/
 .vscode/
 src/firebase-config.js
 .claude/settings.local.json

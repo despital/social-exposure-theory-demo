@@ -46,3 +46,24 @@ participants/
     trials: {phase1: [...], phase2: [...], phase3: [...]}
     surveys: {technical_check: {...}, user_feedback: {...}}
 ```
+
+## Accuracy → Generalization Analysis
+
+Person-level pipeline testing whether individuation accuracy predicts novel-face
+stereotyping, with and without controlling for encountered-face stereotyping.
+
+```bash
+python scripts/analyze_accuracy_generalization.py ^
+  --input path/to/firebase_export.json ^
+  --outdir outputs/accuracy_generalization
+```
+
+Outputs (under `outputs/accuracy_generalization/`):
+- `person_indices.csv`, `descriptives.csv`, `correlations.csv`, `model_coefficients.csv`
+- `report.md`, `figure_captions.md` (APA/APS manuscript captions; titles not in images)
+- `figures/` — PNG (300 dpi) + PDF (vector) for each plot
+
+Figure conventions follow APA 7 / APS guidance: no in-image titles, lowercase panel
+letters, Okabe–Ito colorblind-safe palette, 95% CI bands, individual data shown.
+
+Accepts top-level `pilot` or `participants` collection keys.

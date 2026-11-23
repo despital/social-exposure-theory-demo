@@ -24,13 +24,13 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Config — mirrors src/utils/config.js
 # ---------------------------------------------------------------------------
-TOTAL_FACES        = 40
+TOTAL_FACES        = 20
 TOTAL_NOVEL_FACES  = 120
 PHASE2_TOTAL_TRIALS = 20
-GOOD_BAD_RATIO     = {'red': 0.7, 'blue': 0.7}
+GOOD_BAD_RATIO     = {'red': 0.8, 'blue': 0.8}
 FACE_COLOR_SPLIT   = {
-    'equal':             {'red': 20, 'blue': 20},
-    'majority-minority': {'majority': 32, 'minority': 8},
+    'equal':             {'red': 10, 'blue': 10},
+    'majority-minority': {'majority': 15, 'minority': 5},
 }
 
 # ---------------------------------------------------------------------------

@@ -11,9 +11,9 @@ import { CONFIG } from './config.js';
  * numeric ID (0 through TOTAL_FACES-1) and is assigned to either the "red"
  * or "blue" group. The red/blue split depends on the experimental condition:
  *
- *   - Equal condition:           20 red, 20 blue
- *   - Majority-red condition:    32 red, 8 blue
- *   - Majority-blue condition:   8 red, 32 blue
+ *   - Equal condition:           10 red, 10 blue
+ *   - Majority-red condition:    15 red, 5 blue
+ *   - Majority-blue condition:   5 red, 15 blue
  *
  * Counts come from CONFIG.FACE_COLOR_SPLIT. Which specific IDs become red vs.
  * blue is randomized per participant. Every face appears exactly
@@ -190,7 +190,7 @@ export function assignGoodBad(faces, jsPsych) {
  * groups of FACES_PER_TRIAL. Because each face appears at most once per block,
  * no face can appear twice in the same trial panel.
  *
- * Total trials = TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL = 120.
+ * Total trials = TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL = 60.
  *
  * Each trial object looks like:
  *   {
@@ -373,8 +373,8 @@ export function getURLParams(jsPsych) {
  *   - PHASE2_TOTAL_TRIALS / 4 encountered blue faces (from Phase 1 pool)
  *
  * All sampling is without replacement. The minority group in majority-minority
- * conditions has 8 unique faces; the per-bucket count (default 5) stays within
- * that bound.
+ * conditions has 5 unique faces; the per-bucket count (default 5) uses the
+ * full minority set.
  *
  * Each trial object looks like:
  *   {
