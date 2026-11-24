@@ -55,11 +55,8 @@ export function updateBonusHud(phase1Score) {
         el.className = 'score-display';
         document.body.appendChild(el);
     }
-    const p = getBonusProbability(phase1Score);
     el.innerHTML = `
         <span class="score-display-score">Score: <strong>${phase1Score}</strong></span>
-        <span class="score-display-sep">·</span>
-        <span class="score-display-chance">Bonus chance: <strong>${formatBonusPercent(p)}</strong></span>
     `;
 }
 

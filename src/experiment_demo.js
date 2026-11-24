@@ -592,7 +592,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 <h2>Demo Complete!</h2>
                 <h3>Summary</h3>
                 <p>Phase 1 score: <strong>${totalScore}</strong> (${DEMO_TRIALS_PER_PHASE} trials)</p>
-                <p>Phase 2 score: <strong>${phase2Score}</strong> (${DEMO_TRIALS_PER_PHASE} approach/avoidance ratings)</p>
                 <p>Phase 3: ${DEMO_TRIALS_PER_PHASE} punishment probability estimates</p>
                 <hr>
                 <p style="color: #666; font-size: 13px;">

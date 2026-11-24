@@ -1274,7 +1274,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                         <h3>Your Performance:</h3>
                         <div style="background-color: #f0f0f0; padding: 20px; border-radius: 10px; margin: 20px 0;">
                             <p style="font-size: 18px; margin: 10px 0;">Phase 1 Score: <strong>${totalScore}</strong> points</p>
-                            <p style="font-size: 18px; margin: 10px 0;">Phase 2 Score: <strong>${phase2Score}</strong> points</p>
                             <p style="font-size: 18px; margin: 10px 0;">Bonus chance: <strong>${formatBonusPercent(bonus.probability)}</strong></p>
                             <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">${bonusLine}</p>
                         </div>
@@ -1302,7 +1301,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 return `
                     <h2>Experiment Complete!</h2>
                     <p>Phase 1 score: <strong>${totalScore}</strong> points</p>
-                    <p>Phase 2 score: <strong>${phase2Score}</strong> points</p>
                     <p>Bonus chance: <strong>${formatBonusPercent(bonus.probability)}</strong></p>
                     <p style="color: #2e7d32;">${bonusLine}</p>
                     <p>Thank you for participating.</p>
