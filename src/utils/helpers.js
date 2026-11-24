@@ -280,7 +280,7 @@ export function generateTrials(faces, jsPsych) {
  * a "good" or "bad" person (set earlier by assignGoodBad()):
  *
  *   - Good person: 90% chance of +1 reward, 10% chance of -5 punishment
- *   - Bad person:  50% chance of +1 reward, 50% chance of -5 punishment
+ *   - Bad person:  10% chance of +1 reward, 90% chance of -5 punishment
  *
  * These probabilities are configured in CONFIG.GOOD_PERSON_PROBS and
  * CONFIG.BAD_PERSON_PROBS. The actual reward/punishment values come from

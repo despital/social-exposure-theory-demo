@@ -1,20 +1,20 @@
 /**
- * Bad-face trials avoided (m) → $5 bonus lottery helpers.
- * Ladder thresholds live in CONFIG.BONUS_PROBABILITY_LADDER.
+ * Phase 1 score → $5 bonus lottery helpers.
+ * Smooth discrete ladder: CONFIG.BONUS_PROBABILITY_LADDER.
  */
 
 import { CONFIG } from './config.js';
 
 /**
- * Map count of avoided bad-present trials to bonus win probability in [0, 1].
- * Uses the highest ladder row with minAvoided <= m.
+ * Map Phase 1 point total to bonus win probability in [0, 1].
+ * Uses the highest ladder row with minScore <= score (else 0).
  */
-export function getBonusProbability(badTrialsAvoided) {
-    const m = badTrialsAvoided;
+export function getBonusProbability(phase1Score) {
+    const score = phase1Score;
     const ladder = CONFIG.BONUS_PROBABILITY_LADDER;
     let p = 0;
     for (const row of ladder) {
-        if (m >= row.minAvoided) {
+        if (score >= row.minScore) {
             p = row.p;
         } else {
             break;
@@ -46,10 +46,8 @@ const HUD_ID = 'bonus-status-hud';
 /**
  * Mount or refresh the fixed bottom Phase 1 HUD.
  * @param {number} phase1Score
- * @param {number} badTrialsAvoided - m
- * @param {number} badTrialsTotal - usually 48 under Config A
  */
-export function updateBonusHud(phase1Score, badTrialsAvoided, badTrialsTotal) {
+export function updateBonusHud(phase1Score) {
     let el = document.getElementById(HUD_ID);
     if (!el) {
         el = document.createElement('div');
@@ -57,11 +55,9 @@ export function updateBonusHud(phase1Score, badTrialsAvoided, badTrialsTotal) {
         el.className = 'score-display';
         document.body.appendChild(el);
     }
-    const p = getBonusProbability(badTrialsAvoided);
+    const p = getBonusProbability(phase1Score);
     el.innerHTML = `
         <span class="score-display-score">Score: <strong>${phase1Score}</strong></span>
-        <span class="score-display-sep">·</span>
-        <span class="score-display-avoided">Avoided: <strong>${badTrialsAvoided}/${badTrialsTotal}</strong></span>
         <span class="score-display-sep">·</span>
         <span class="score-display-chance">Bonus chance: <strong>${formatBonusPercent(p)}</strong></span>
     `;

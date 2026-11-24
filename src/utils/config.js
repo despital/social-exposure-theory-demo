@@ -43,8 +43,8 @@ export const CONFIG = {
         punishment: 0.1  // -5 with 10% probability
     },
     BAD_PERSON_PROBS: {
-        reward: 0.5,     // +1 with 50% probability
-        punishment: 0.5  // -5 with 50% probability
+        reward: 0.1,     // +1 with 10% probability
+        punishment: 0.9  // -5 with 90% probability
     },
 
     // Reward values
@@ -54,24 +54,31 @@ export const CONFIG = {
     // Legacy points→dollars rate (no longer used for paid bonus; lottery replaces it)
     POINTS_TO_DOLLARS: 0.01,
 
-    // Bad-face trials avoided (m) → probability of winning a flat $5 bonus
-    // See docs/Bonus_Probability_Schedule.md. Config A: 4 bad × 12 exposures = 48 bad-present trials.
+    // Phase 1 score → probability of winning a flat $5 bonus (smooth discrete ladder)
+    // See docs/Bonus_Probability_Schedule.md. Steps ≈ +1 avoid / +2.4 EV under Config A.
+    // P = highest row with minScore <= phase1Score; below −19.2 → 0%.
     BONUS_AMOUNT_USD: 5,
-    // Ordered by minAvoided ascending. P = highest row with minAvoided <= m.
-    // m <= 36 (≈ random) → 0%; m >= 46 → 100%.
     BONUS_PROBABILITY_LADDER: [
-        { minAvoided: 0,  p: 0.0 },
-        { minAvoided: 37, p: 0.1 },
-        { minAvoided: 38, p: 0.2 },
-        { minAvoided: 39, p: 0.3 },
-        { minAvoided: 40, p: 0.4 },
-        { minAvoided: 41, p: 0.5 },
-        { minAvoided: 42, p: 0.6 },
-        { minAvoided: 43, p: 0.7 },
-        { minAvoided: 44, p: 0.8 },
-        { minAvoided: 45, p: 0.9 },
-        { minAvoided: 46, p: 1.0 }
+        { minScore: -19.2, p: 0.05 }, // ≈ m = 30
+        { minScore: -16.8, p: 0.10 }, // ≈ m = 31
+        { minScore: -14.4, p: 0.15 }, // ≈ m = 32
+        { minScore: -12.0, p: 0.20 }, // ≈ m = 33
+        { minScore:  -9.6, p: 0.25 }, // ≈ m = 34
+        { minScore:  -7.2, p: 0.30 }, // ≈ m = 35
+        { minScore:  -4.8, p: 0.35 }, // ≈ m = 36 (random)
+        { minScore:  -2.4, p: 0.40 }, // ≈ m = 37
+        { minScore:   0.0, p: 0.50 }, // ≈ m = 38
+        { minScore:   2.4, p: 0.55 }, // ≈ m = 39
+        { minScore:   4.8, p: 0.60 }, // ≈ m = 40
+        { minScore:   7.2, p: 0.70 }, // ≈ m = 41
+        { minScore:   9.6, p: 0.75 }, // ≈ m = 42
+        { minScore:  12.0, p: 0.80 }, // ≈ m = 43
+        { minScore:  14.4, p: 0.85 }, // ≈ m = 44
+        { minScore:  16.8, p: 0.90 }, // ≈ m = 45
+        { minScore:  19.2, p: 0.95 }, // ≈ m = 46
+        { minScore:  21.6, p: 1.00 }  // ≈ m = 47
     ],
+
 
 
     // Firebase configuration - Social Exposure Theory 2026
@@ -121,7 +128,7 @@ export const CONFIG = {
 
     // Per-trial response deadline (Phase 1 choice + each Phase 2 question).
     // Feedback / memorization screens keep their own fixed durations.
-    RESPONSE_TIME_LIMIT_MS: 10000,
+    RESPONSE_TIME_LIMIT_MS: 12000,
 
     // Phase 2 parameters (single-face slider design)
     // Total faces rated per session (10 novel + 10 encountered); adjustable.

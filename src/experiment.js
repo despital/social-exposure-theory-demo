@@ -140,15 +140,15 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     // Track score
     let totalScore = 0;
-    // Bad-present trials where participant chose a good face (see docs/Bonus_Probability_Schedule.md)
+    // Logged for analysis only — bonus lottery uses Phase 1 score, not avoidance count
     let badTrialsAvoided = 0;
     let badTrialsPresent = 0;
     const badTrialsTotal = faces.filter(f => f.isGood === false).length * exposuresUsedInPhase1;
-    // Drawn once at end from badTrialsAvoided (see utils/bonus.js)
+    // Drawn once at end from totalScore (see utils/bonus.js)
     let bonusResult = null;
     const ensureBonusDrawn = () => {
         if (!bonusResult) {
-            bonusResult = drawBonus(getBonusProbability(badTrialsAvoided));
+            bonusResult = drawBonus(getBonusProbability(totalScore));
         }
         return bonusResult;
     };
@@ -471,18 +471,18 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         const instructionText = urlParams.p1Type === 'control'
             ? `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
-                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>10 seconds</strong>; if time runs out, a face is selected at random.</p>
+                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
                 <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
                 <p>After your choice, outcomes for <strong>all four people</strong> will be revealed. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
-                <p>How often you <strong>avoid hostile people</strong> in this phase determines your chance of winning a <strong>$${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Better avoidance means a higher chance. The bonus is drawn at random using that probability.</p>
+                <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>$${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
                 <p>Press any key to start.</p>
             </div>`
             : `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
-                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>10 seconds</strong>; if time runs out, a face is selected at random.</p>
+                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
                 <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
                 <p>After your choice, you will see the outcome for the person you selected. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
-                <p>How often you <strong>avoid hostile people</strong> in this phase determines your chance of winning a <strong>$${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Better avoidance means a higher chance. The bonus is drawn at random using that probability.</p>
+                <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>$${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
                 <p>Press any key to start.</p>
             </div>`;
 
@@ -491,7 +491,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         stimulus: instructionText,
         on_start: function() {
             jsPsych.progressBar.progress = 0;
-            updateBonusHud(totalScore, badTrialsAvoided, badTrialsTotal);
+            updateBonusHud(totalScore);
         }
     };
     timeline.push(instructions);
@@ -549,7 +549,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             data.outcome = outcome;
             data.total_score = totalScore;
 
-            // Bonus ladder: count avoidance on bad-present trials only
+            // Avoidance counters logged for analysis; bonus ladder uses totalScore
             const badOnTrial = trialFaces.some(f => f.isGood === false);
             data.bad_trial_present = badOnTrial;
             if (badOnTrial) {
@@ -562,8 +562,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             }
             data.bad_trials_avoided = badTrialsAvoided;
             data.bad_trials_present = badTrialsPresent;
-            data.bonus_probability = getBonusProbability(badTrialsAvoided);
-            updateBonusHud(totalScore, badTrialsAvoided, badTrialsTotal);
+            data.bonus_probability = getBonusProbability(totalScore);
+            updateBonusHud(totalScore);
             // RT is automatically recorded by the plugin in data.rt
 
             // Control condition: compute and store outcomes for all 4 faces
@@ -757,7 +757,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <li>What is the <strong>probability</strong> that this person will give you a punishment?</li>
                     <li>How <strong>confident</strong> are you in your punishment probability estimate?</li>
                 </ol>
-                <p>You have <strong>10 seconds</strong> for each question. If time runs out, the starting slider value is recorded.</p>
+                <p>You have <strong>12 seconds</strong> for each question. If time runs out, the starting slider value is recorded.</p>
                 <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
                 <p>Press any key to start Phase 2.</p>
             </div>
@@ -1275,7 +1275,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                         <div style="background-color: #f0f0f0; padding: 20px; border-radius: 10px; margin: 20px 0;">
                             <p style="font-size: 18px; margin: 10px 0;">Phase 1 Score: <strong>${totalScore}</strong> points</p>
                             <p style="font-size: 18px; margin: 10px 0;">Phase 2 Score: <strong>${phase2Score}</strong> points</p>
-                            <p style="font-size: 18px; margin: 10px 0;">Hostile faces avoided: <strong>${badTrialsAvoided}/${badTrialsTotal}</strong></p>
                             <p style="font-size: 18px; margin: 10px 0;">Bonus chance: <strong>${formatBonusPercent(bonus.probability)}</strong></p>
                             <p style="font-size: 22px; margin: 10px 0; color: #2e7d32;">${bonusLine}</p>
                         </div>
@@ -1304,7 +1303,6 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <h2>Experiment Complete!</h2>
                     <p>Phase 1 score: <strong>${totalScore}</strong> points</p>
                     <p>Phase 2 score: <strong>${phase2Score}</strong> points</p>
-                    <p>Hostile faces avoided: <strong>${badTrialsAvoided}/${badTrialsTotal}</strong></p>
                     <p>Bonus chance: <strong>${formatBonusPercent(bonus.probability)}</strong></p>
                     <p style="color: #2e7d32;">${bonusLine}</p>
                     <p>Thank you for participating.</p>
