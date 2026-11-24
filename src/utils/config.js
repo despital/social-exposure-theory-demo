@@ -131,6 +131,11 @@ export const CONFIG = {
     // Feedback / memorization screens keep their own fixed durations.
     RESPONSE_TIME_LIMIT_MS: 12000,
 
+    // When false, Phase 1 / Phase 2 response deadlines and countdown bars are off
+    // (no timeout, no random auto-choice). Feedback / break auto-advances are unchanged.
+    // Set true for real data collection.
+    ENABLE_RESPONSE_TIMERS: false,
+
     // Phase 2 parameters (single-face slider design)
     // Total faces rated per session (10 novel + 10 encountered); adjustable.
     // With 3 questions per face (approach-avoidance, probability, confidence),

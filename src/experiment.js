@@ -172,6 +172,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     let phase2FaceIndex = 0;  // 1-indexed presentation order within Phase 2
     let phase2TimerHandle = null;
 
+    // null when ENABLE_RESPONSE_TIMERS is false → no deadline / no countdown bar
+    const responseTimeLimitMs = CONFIG.ENABLE_RESPONSE_TIMERS
+        ? CONFIG.RESPONSE_TIME_LIMIT_MS
+        : null;
+
     const clearPhase2Timer = () => {
         if (phase2TimerHandle) {
             phase2TimerHandle.clear();
@@ -181,9 +186,10 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     const loadPhase2Timer = () => {
         clearPhase2Timer();
+        if (responseTimeLimitMs == null) return;
         phase2TimerHandle = mountResponseTimer(
             jsPsych.getDisplayElement(),
-            CONFIG.RESPONSE_TIME_LIMIT_MS
+            responseTimeLimitMs
         );
     };
 
@@ -469,10 +475,13 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
     if (shouldShowSection('phase1')) {
         // Instructions (differ between experimental and control)
+        const phase1TimerLine = CONFIG.ENABLE_RESPONSE_TIMERS
+            ? `<p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>`
+            : `<p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with.</p>`;
         const instructionText = urlParams.p1Type === 'control'
             ? `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
-                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
+                ${phase1TimerLine}
                 <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
                 <p>After your choice, outcomes for <strong>all four people</strong> will be revealed. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
                 <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>${CONFIG.BONUS_CURRENCY_SYMBOL}${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
@@ -480,7 +489,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             </div>`
             : `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
-                <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
+                ${phase1TimerLine}
                 <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
                 <p>After your choice, you will see the outcome for the person you selected. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
                 <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>${CONFIG.BONUS_CURRENCY_SYMBOL}${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
@@ -520,8 +529,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         image_height: 200,
         grid_columns: 2,
         gap: 20,
-        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
-        show_timer: true,
+        trial_duration: responseTimeLimitMs,
+        show_timer: CONFIG.ENABLE_RESPONSE_TIMERS,
         data: function() {
             const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             return {
@@ -758,7 +767,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <li>What is the <strong>probability</strong> that this person will give you a punishment?</li>
                     <li>How <strong>confident</strong> are you in your punishment probability estimate?</li>
                 </ol>
-                <p>You have <strong>12 seconds</strong> for each question. If time runs out, the starting slider value is recorded.</p>
+                ${CONFIG.ENABLE_RESPONSE_TIMERS
+                    ? `<p>You have <strong>12 seconds</strong> for each question. If time runs out, the starting slider value is recorded.</p>`
+                    : ``}
                 <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
                 <p>Press any key to start Phase 2.</p>
             </div>
@@ -792,7 +803,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         step: 1,
         slider_width: 500,
         require_movement: true,
-        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
+        trial_duration: responseTimeLimitMs,
         on_load: loadPhase2Timer,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
@@ -865,7 +876,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         slider_width: 500,
         labels: ['0%', '25%', '50%', '75%', '100%'],
         require_movement: true,
-        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
+        trial_duration: responseTimeLimitMs,
         on_load: loadPhase2Timer,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
@@ -913,7 +924,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         slider_width: 500,
         labels: ['Not at all confident', 'Somewhat confident', 'Very confident', 'Extremely confident'],
         require_movement: true,
-        trial_duration: CONFIG.RESPONSE_TIME_LIMIT_MS,
+        trial_duration: responseTimeLimitMs,
         on_load: loadPhase2Timer,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
