@@ -1,5 +1,5 @@
 /**
- * Phase 1 score → $5 bonus lottery helpers.
+ * Phase 1 score → £ bonus lottery helpers.
  * Smooth discrete ladder: CONFIG.BONUS_PROBABILITY_LADDER.
  */
 
@@ -39,6 +39,11 @@ export function drawBonus(p) {
 /** Format probability for HUD / end screens, e.g. 0.8 → "80%" */
 export function formatBonusPercent(p) {
     return `${Math.round(p * 100)}%`;
+}
+
+/** Format bonus amount for participants, e.g. 5 → "£5.00" */
+export function formatBonusAmount(amount) {
+    return `${CONFIG.BONUS_CURRENCY_SYMBOL}${Number(amount).toFixed(2)}`;
 }
 
 const HUD_ID = 'bonus-status-hud';

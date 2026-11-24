@@ -54,10 +54,11 @@ export const CONFIG = {
     // Legacy points→dollars rate (no longer used for paid bonus; lottery replaces it)
     POINTS_TO_DOLLARS: 0.01,
 
-    // Phase 1 score → probability of winning a flat $5 bonus (smooth discrete ladder)
+    // Phase 1 score → probability of winning a flat £5 bonus (smooth discrete ladder)
     // See docs/Bonus_Probability_Schedule.md. Steps ≈ +1 avoid / +2.4 EV under Config A.
     // P = highest row with minScore <= phase1Score; below −19.2 → 0%.
-    BONUS_AMOUNT_USD: 5,
+    BONUS_AMOUNT_USD: 5, // numeric amount; participant-facing symbol is BONUS_CURRENCY_SYMBOL
+    BONUS_CURRENCY_SYMBOL: '£',
     BONUS_PROBABILITY_LADDER: [
         { minScore: -19.2, p: 0.05 }, // ≈ m = 30
         { minScore: -16.8, p: 0.10 }, // ≈ m = 31

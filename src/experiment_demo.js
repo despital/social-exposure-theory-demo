@@ -106,7 +106,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
             <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
             <p>After your choice, outcomes for <strong>all four people</strong> will be revealed. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
-            <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>$5 bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
+            <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>£5 bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
             <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} trials.</em></p>
             <p>Press any key to start.</p>
         </div>`
@@ -115,7 +115,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
             <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
             <p>After your choice, you will see the outcome for the person you selected. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
-            <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>$5 bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
+            <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>£5 bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
             <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} trials.</em></p>
             <p>Press any key to start.</p>
         </div>`;
