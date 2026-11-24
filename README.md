@@ -10,7 +10,7 @@ This online experiment examines how people learn about and make decisions involv
 2. **Phase 2: Partner Choice** - Make decisions involving novel group members
 3. **Phase 3: Post-Task Rating** - Evaluate all individuals encountered during the experiment
 
-**Duration**: Approximately 20-25 minutes
+**Duration**: Approximately 40 minutes
 
 ## Experiment Structure
 

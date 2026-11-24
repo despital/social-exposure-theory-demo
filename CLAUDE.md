@@ -5,7 +5,7 @@
 
 Online behavioral experiment: approach-avoidance behavior and social learning
 in group contexts. Built with jsPsych 8.2. Data collected via Firebase.
-Target: ~20-25 minutes per participant.
+Target: ~40 minutes per participant.
 
 ## Environment
 

@@ -232,7 +232,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 <h2>Informed Consent</h2>
                 <p>Before we begin, please read and agree to the informed consent form.</p>
                 <p>Please note that you're free to leave at any point of the experiment even if you have agreed to the consent form.</p>
-                <p>The experiment will take approximately 20-25 minutes.</p>
+                <p>The experiment will take approximately 40 minutes.</p>
             `,
             choices: ['View Consent Form'],
             data: {
