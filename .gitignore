@@ -4,6 +4,7 @@ data/*.csv
 *.log
 .env
 dist/
+outputs/
+tools/
 .vscode/
 src/firebase-config.js
-outputs/
