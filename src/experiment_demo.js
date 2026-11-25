@@ -136,7 +136,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // ========================================================================
 
     const phase1LockLine = phase1LockMs > 0
-        ? `<p>On each trial, you must wait <strong>${phase1LockSec} seconds</strong> before you can click a face. A status line under the prompt will say “Please wait…” and then “Click a face to choose” when you can respond.</p>`
+        ? `<p>On each trial, you can take as much time as you want to decide, but you must wait <strong>${phase1LockSec} seconds</strong> before you can click a face. A status line under the prompt will say “Please wait…” and then “Click a face to choose” when you can respond.</p>`
         : ``;
     const phase1InstructionText = urlParams.p1Type === 'control'
         ? `<div style="max-width: 800px; margin: auto; text-align: left;">
