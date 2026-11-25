@@ -136,6 +136,12 @@ export const CONFIG = {
     // Set true for real data collection.
     ENABLE_RESPONSE_TIMERS: false,
 
+    // Pre-response lock: Phase 1 faces unclickable; Phase 2 Continue disabled.
+    // Instructions state these durations explicitly (derived as ms / 1000).
+    ENABLE_RESPONSE_LOCK: true,
+    RESPONSE_LOCK_MS_PHASE1: 3000,
+    RESPONSE_LOCK_MS_PHASE2: 1000,
+
     // Phase 2 parameters (single-face slider design)
     // Composition: ALL Phase 1 faces (encountered) + novel faces mixed in.
     // Default: 20 encountered + 5 novel red + 5 novel blue = 30 faces.

@@ -26,6 +26,7 @@ import {
     generatePhase2Trials,
     generatePhase3Trials
 } from "./utils/helpers.js";
+import { mountContinueLock } from "./utils/response_lock.js";
 
 const DEMO_TRIALS_PER_PHASE = 5;
 
@@ -62,6 +63,40 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     let phase2TrialCount = 0;
     let phase2FaceIndex = 0;  // 1-indexed presentation order within Phase 2
     let phase3TrialCount = 0;
+    let phase2LockHandle = null;
+
+    const phase1LockMs = CONFIG.ENABLE_RESPONSE_LOCK ? CONFIG.RESPONSE_LOCK_MS_PHASE1 : 0;
+    const phase2LockMs = CONFIG.ENABLE_RESPONSE_LOCK ? CONFIG.RESPONSE_LOCK_MS_PHASE2 : 0;
+    const phase1LockSec = phase1LockMs / 1000;
+    const phase2LockSec = phase2LockMs / 1000;
+
+    const clearPhase2Lock = () => {
+        if (phase2LockHandle) {
+            phase2LockHandle.clear();
+            phase2LockHandle = null;
+        }
+    };
+
+    const loadPhase2ContinueLock = () => {
+        clearPhase2Lock();
+        if (phase2LockMs > 0) {
+            phase2LockHandle = mountContinueLock(
+                jsPsych.getDisplayElement(),
+                phase2LockMs
+            );
+        }
+    };
+
+    const annotatePhase2LockData = (data) => {
+        data.lock_ms = phase2LockMs;
+        if (data.rt == null) {
+            data.rt_from_unlock = null;
+        } else if (phase2LockMs > 0) {
+            data.rt_from_unlock = Math.max(0, data.rt - phase2LockMs);
+        } else {
+            data.rt_from_unlock = data.rt;
+        }
+    };
 
     console.log('DEMO Experiment initialized:', {
         conditionCode: urlParams.conditionCode,
@@ -100,10 +135,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // PHASE 1: LEARNING TASK
     // ========================================================================
 
+    const phase1LockLine = phase1LockMs > 0
+        ? `<p>On each trial, you must wait <strong>${phase1LockSec} seconds</strong> before you can click a face. A status line under the prompt will say “Please wait…” and then “Click a face to choose” when you can respond.</p>`
+        : ``;
     const phase1InstructionText = urlParams.p1Type === 'control'
         ? `<div style="max-width: 800px; margin: auto; text-align: left;">
             <h2>Phase 1: Learning Task</h2>
-            <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
+            <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with.</p>
+            ${phase1LockLine}
             <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
             <p>After your choice, outcomes for <strong>all four people</strong> will be revealed. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
             <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>£5 bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
@@ -112,7 +151,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         </div>`
         : `<div style="max-width: 800px; margin: auto; text-align: left;">
             <h2>Phase 1: Learning Task</h2>
-            <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>
+            <p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with.</p>
+            ${phase1LockLine}
             <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
             <p>After your choice, you will see the outcome for the person you selected. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
             <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>£5 bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
@@ -145,6 +185,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         image_height: 200,
         grid_columns: 2,
         gap: 20,
+        response_lock_ms: phase1LockMs,
         data: function() {
             return {
                 task: 'choice',
@@ -330,6 +371,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     <li>What is the <strong>probability</strong> that this person will give you a punishment?</li>
                     <li>How <strong>confident</strong> are you in your punishment probability estimate?</li>
                 </ol>
+                ${phase2LockMs > 0
+                    ? `<p>On each question, the <strong>Continue</strong> button stays locked for <strong>${phase2LockSec} second${phase2LockSec === 1 ? '' : 's'}</strong>. You can move the slider during that time; Continue unlocks after ${phase2LockSec} second${phase2LockSec === 1 ? '' : 's'} <strong>and</strong> after you have moved the slider.</p>`
+                    : ``}
                 <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
                 <p><em>Demo: ${DEMO_TRIALS_PER_PHASE} faces.</em></p>
                 <p>Press any key to start Phase 2.</p>
@@ -358,6 +402,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         step: 1,
         slider_width: 500,
         require_movement: true,
+        on_load: loadPhase2ContinueLock,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             phase2FaceIndex++;  // increment once per face (slider is always first question)
@@ -372,6 +417,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             };
         },
         on_finish: function(data) {
+            clearPhase2Lock();
+            annotatePhase2LockData(data);
             const face = jsPsych.evaluateTimelineVariable('face');
             data.slider_rating = data.response;
 
@@ -419,6 +466,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         slider_width: 500,
         labels: ['0%', '25%', '50%', '75%', '100%'],
         require_movement: true,
+        on_load: loadPhase2ContinueLock,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
@@ -432,6 +480,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             };
         },
         on_finish: function(data) {
+            clearPhase2Lock();
+            annotatePhase2LockData(data);
             data.probability_punishment = data.response;
             delete data.stimulus;
             delete data.slider_start;
@@ -460,6 +510,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         slider_width: 500,
         labels: ['Not at all confident', 'Somewhat confident', 'Very confident', 'Extremely confident'],
         require_movement: true,
+        on_load: loadPhase2ContinueLock,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
@@ -473,6 +524,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             };
         },
         on_finish: function(data) {
+            clearPhase2Lock();
+            annotatePhase2LockData(data);
             data.confidence_rating = data.response;
 
             phase2TrialCount++;

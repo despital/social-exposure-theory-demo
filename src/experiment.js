@@ -27,6 +27,7 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 import { CONFIG } from "./utils/config.js";
 import { generateFaces, assignGoodBad, generateTrials, getOutcome, getURLParams, generateNovelFaces, generatePhase2Trials, generatePhase3Trials } from "./utils/helpers.js";
 import { mountResponseTimer } from "./utils/response_timer.js";
+import { mountContinueLock } from "./utils/response_lock.js";
 import {
     getBonusProbability,
     drawBonus,
@@ -175,11 +176,17 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     let phase2TrialCount = 0;
     let phase2FaceIndex = 0;  // 1-indexed presentation order within Phase 2
     let phase2TimerHandle = null;
+    let phase2LockHandle = null;
 
     // null when ENABLE_RESPONSE_TIMERS is false → no deadline / no countdown bar
     const responseTimeLimitMs = CONFIG.ENABLE_RESPONSE_TIMERS
         ? CONFIG.RESPONSE_TIME_LIMIT_MS
         : null;
+
+    const phase1LockMs = CONFIG.ENABLE_RESPONSE_LOCK ? CONFIG.RESPONSE_LOCK_MS_PHASE1 : 0;
+    const phase2LockMs = CONFIG.ENABLE_RESPONSE_LOCK ? CONFIG.RESPONSE_LOCK_MS_PHASE2 : 0;
+    const phase1LockSec = phase1LockMs / 1000;
+    const phase2LockSec = phase2LockMs / 1000;
 
     const clearPhase2Timer = () => {
         if (phase2TimerHandle) {
@@ -188,13 +195,39 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         }
     };
 
-    const loadPhase2Timer = () => {
+    const clearPhase2Lock = () => {
+        if (phase2LockHandle) {
+            phase2LockHandle.clear();
+            phase2LockHandle = null;
+        }
+    };
+
+    const loadPhase2ResponseControls = () => {
         clearPhase2Timer();
-        if (responseTimeLimitMs == null) return;
-        phase2TimerHandle = mountResponseTimer(
-            jsPsych.getDisplayElement(),
-            responseTimeLimitMs
-        );
+        clearPhase2Lock();
+        if (responseTimeLimitMs != null) {
+            phase2TimerHandle = mountResponseTimer(
+                jsPsych.getDisplayElement(),
+                responseTimeLimitMs
+            );
+        }
+        if (phase2LockMs > 0) {
+            phase2LockHandle = mountContinueLock(
+                jsPsych.getDisplayElement(),
+                phase2LockMs
+            );
+        }
+    };
+
+    const annotatePhase2LockData = (data) => {
+        data.lock_ms = phase2LockMs;
+        if (data.rt == null) {
+            data.rt_from_unlock = null;
+        } else if (phase2LockMs > 0) {
+            data.rt_from_unlock = Math.max(0, data.rt - phase2LockMs);
+        } else {
+            data.rt_from_unlock = data.rt;
+        }
     };
 
     console.log('Experiment initialized:', {
@@ -482,10 +515,14 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         const phase1TimerLine = CONFIG.ENABLE_RESPONSE_TIMERS
             ? `<p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with. You have <strong>12 seconds</strong>; if time runs out, a face is selected at random.</p>`
             : `<p>On each trial you will see <strong>4 faces</strong>. Click one person to interact with.</p>`;
+        const phase1LockLine = phase1LockMs > 0
+            ? `<p>On each trial, you must wait <strong>${phase1LockSec} seconds</strong> before you can click a face. A status line under the prompt will say “Please wait…” and then “Click a face to choose” when you can respond.</p>`
+            : ``;
         const instructionText = urlParams.p1Type === 'control'
             ? `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
                 ${phase1TimerLine}
+                ${phase1LockLine}
                 <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
                 <p>After your choice, outcomes for <strong>all four people</strong> will be revealed. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
                 <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>${CONFIG.BONUS_CURRENCY_SYMBOL}${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
@@ -494,6 +531,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
             : `<div style="max-width: 800px; margin: auto; text-align: left;">
                 <h2>Instructions</h2>
                 ${phase1TimerLine}
+                ${phase1LockLine}
                 <p>You are interacting with a pool of people. Some are <strong>benign</strong>: <strong>highly likely</strong> to give a <strong>reward (+1)</strong>, and only <strong>rarely</strong> a <strong>punishment (−5)</strong>. Others are <strong>hostile</strong>: <strong>highly likely</strong> to give a <strong>punishment (−5)</strong>, and only <strong>rarely</strong> a <strong>reward (+1)</strong>. Learn from experience who is who. You will have opportunities to interact with each person <strong>more than once</strong>.</p>
                 <p>After your choice, you will see the outcome for the person you selected. To maximize your score, try to interact with benign people and avoid hostile ones.</p>
                 <p>Your <strong>Phase 1 score</strong> determines your chance of winning a <strong>${CONFIG.BONUS_CURRENCY_SYMBOL}${CONFIG.BONUS_AMOUNT_USD} bonus</strong> at the end. Higher scores mean a higher chance. The bonus is drawn at random using that probability.</p>
@@ -535,6 +573,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         gap: 20,
         trial_duration: responseTimeLimitMs,
         show_timer: CONFIG.ENABLE_RESPONSE_TIMERS,
+        response_lock_ms: phase1LockMs,
         data: function() {
             const trialFaces = jsPsych.evaluateTimelineVariable('faces');
             return {
@@ -774,6 +813,9 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                 ${CONFIG.ENABLE_RESPONSE_TIMERS
                     ? `<p>You have <strong>12 seconds</strong> for each question. If time runs out, the starting slider value is recorded.</p>`
                     : ``}
+                ${phase2LockMs > 0
+                    ? `<p>On each question, the <strong>Continue</strong> button stays locked for <strong>${phase2LockSec} second${phase2LockSec === 1 ? '' : 's'}</strong>. You can move the slider during that time; Continue unlocks after ${phase2LockSec} second${phase2LockSec === 1 ? '' : 's'} <strong>and</strong> after you have moved the slider.</p>`
+                    : ``}
                 <p><strong>Note:</strong> You will NOT receive feedback after each rating.</p>
                 <p>Press any key to start Phase 2.</p>
             </div>
@@ -808,7 +850,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         slider_width: 500,
         require_movement: true,
         trial_duration: responseTimeLimitMs,
-        on_load: loadPhase2Timer,
+        on_load: loadPhase2ResponseControls,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             phase2FaceIndex++;  // increment once per face (slider is always first question)
@@ -825,6 +867,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         },
         on_finish: function(data) {
             clearPhase2Timer();
+            clearPhase2Lock();
+            annotatePhase2LockData(data);
             const face = jsPsych.evaluateTimelineVariable('face');
             const timedOut = data.rt == null || data.response == null;
             data.response_type = timedOut ? 'no_response' : 'response';
@@ -881,7 +925,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         labels: ['0%', '25%', '50%', '75%', '100%'],
         require_movement: true,
         trial_duration: responseTimeLimitMs,
-        on_load: loadPhase2Timer,
+        on_load: loadPhase2ResponseControls,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
@@ -897,6 +941,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         },
         on_finish: function(data) {
             clearPhase2Timer();
+            clearPhase2Lock();
+            annotatePhase2LockData(data);
             const timedOut = data.rt == null || data.response == null;
             data.response_type = timedOut ? 'no_response' : 'response';
             data.probability_punishment = timedOut ? 50 : data.response;
@@ -929,7 +975,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         labels: ['Not at all confident', 'Somewhat confident', 'Very confident', 'Extremely confident'],
         require_movement: true,
         trial_duration: responseTimeLimitMs,
-        on_load: loadPhase2Timer,
+        on_load: loadPhase2ResponseControls,
         data: function() {
             const face = jsPsych.evaluateTimelineVariable('face');
             return {
@@ -945,6 +991,8 @@ export async function run({ assetPaths, input = {}, environment, title, version 
         },
         on_finish: function(data) {
             clearPhase2Timer();
+            clearPhase2Lock();
+            annotatePhase2LockData(data);
             const timedOut = data.rt == null || data.response == null;
             data.response_type = timedOut ? 'no_response' : 'response';
             data.confidence_rating = timedOut ? 50 : data.response;
@@ -1434,23 +1482,60 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     // Automatically clicks through trials by detecting clickable elements in the DOM
     const autoclickParam = jsPsych.data.getURLVariable('autoclick') === 'true';
     if (debugMode && (autoclickParam || CONFIG.DEBUG_MODE.ENABLE_AUTOCLICK)) {
-        const AUTOCLICK_DELAY = 100; // ms before auto-clicking each trial
+        const AUTOCLICK_BASE_DELAY = 100; // ms before auto-clicking non-locked trials
         let autoclickPending = false;
 
         const observer = new MutationObserver(() => {
             if (autoclickPending) return;
             autoclickPending = true;
 
+            const hasFaceLock = !!document.querySelector('.image-multi-choice-container.response-locked');
+            const hasContinueLock = (() => {
+                const btn = document.querySelector('#jspsych-html-slider-response-next');
+                return !!(btn && btn.disabled && phase2LockMs > 0);
+            })();
+            const delay = hasFaceLock
+                ? phase1LockMs + AUTOCLICK_BASE_DELAY
+                : (hasContinueLock ? phase2LockMs + AUTOCLICK_BASE_DELAY : AUTOCLICK_BASE_DELAY);
+
             setTimeout(() => {
                 autoclickPending = false;
 
-                // Custom plugin: click a face option
+                // Custom plugin: click a face option (only once unlocked)
+                const lockedFaces = document.querySelector('.image-multi-choice-container.response-locked');
                 const imageChoice = document.querySelector('.image-multi-choice-option');
+                if (imageChoice && lockedFaces) {
+                    setTimeout(() => {
+                        const choice = document.querySelector('.image-multi-choice-option');
+                        const stillLocked = document.querySelector('.image-multi-choice-container.response-locked');
+                        if (choice && !stillLocked) choice.click();
+                    }, AUTOCLICK_BASE_DELAY);
+                    return;
+                }
                 if (imageChoice) { imageChoice.click(); return; }
+
+                // Slider Continue: move slider if needed, then click when enabled
+                const slider = document.querySelector('#jspsych-html-slider-response-response');
+                const continueBtn = document.querySelector('#jspsych-html-slider-response-next');
+                if (slider && continueBtn) {
+                    if (continueBtn.disabled) {
+                        slider.value = String(Number(slider.min) + Number(slider.step || 1));
+                        slider.dispatchEvent(new Event('input', { bubbles: true }));
+                        slider.dispatchEvent(new Event('change', { bubbles: true }));
+                        // If still locked by time, retry shortly after unlock
+                        setTimeout(() => {
+                            const btn = document.querySelector('#jspsych-html-slider-response-next');
+                            if (btn && !btn.disabled) btn.click();
+                        }, Math.max(AUTOCLICK_BASE_DELAY, phase2LockMs));
+                        return;
+                    }
+                    continueBtn.click();
+                    return;
+                }
 
                 // Button response plugin: click a button
                 const button = document.querySelector('.jspsych-btn');
-                if (button) { button.click(); return; }
+                if (button && !button.disabled) { button.click(); return; }
 
                 // Keyboard response plugin: dispatch a keypress
                 const keyboardStimulus = document.querySelector('#jspsych-html-keyboard-response-stimulus');
@@ -1458,11 +1543,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
                     document.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
                     document.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
                 }
-            }, AUTOCLICK_DELAY);
+            }, delay);
         });
 
         observer.observe(document.body, { childList: true, subtree: true });
-        console.log('Debug mode: Auto-click ENABLED (delay: ' + AUTOCLICK_DELAY + 'ms)');
+        console.log('Debug mode: Auto-click ENABLED (base delay: ' + AUTOCLICK_BASE_DELAY + 'ms; respects response locks)');
     }
 
     // Run the experiment

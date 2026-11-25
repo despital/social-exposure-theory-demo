@@ -126,6 +126,16 @@ body {
     color: red;
 }
 
+// Phase 1 pre-response lock status (faces unchanged; text + cursor only)
+.response-lock-status {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    margin: 0 auto 8px;
+    min-height: 1.2em;
+}
+
 // Per-trial response countdown (Phase 1 choice + Phase 2 questions)
 .response-timer {
     max-width: 420px;

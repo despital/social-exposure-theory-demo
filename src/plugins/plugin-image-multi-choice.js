@@ -4,6 +4,7 @@
  * Displays multiple images in a grid and allows participant to click one to make a choice.
  * Records which image was clicked and reaction time.
  * Optional trial_duration shows a countdown bar; on timeout a random face is chosen.
+ * Optional response_lock_ms blocks clicks until unlock (status line + cursor only).
  */
 
 import { mountResponseTimer } from '../utils/response_timer.js';
@@ -52,6 +53,11 @@ const info = {
             type: "BOOL",
             default: true,
         },
+        /** ms before clicks are accepted; 0 = no lock */
+        response_lock_ms: {
+            type: "INT",
+            default: 0,
+        },
     },
 };
 
@@ -64,6 +70,10 @@ class ImageMultiChoicePlugin {
         const startTime = performance.now();
         let trialEnded = false;
         let timerHandle = null;
+        let lockTimeoutId = null;
+        const lockMs = trial.response_lock_ms > 0 ? trial.response_lock_ms : 0;
+        let unlocked = lockMs <= 0;
+        let unlockTime = unlocked ? startTime : null;
 
         let html = "";
 
@@ -71,7 +81,11 @@ class ImageMultiChoicePlugin {
             html += `<div class="image-multi-choice-prompt">${trial.prompt}</div>`;
         }
 
-        html += `<div class="image-multi-choice-container" style="
+        if (lockMs > 0) {
+            html += `<div class="response-lock-status" aria-live="polite">Please wait…</div>`;
+        }
+
+        html += `<div class="image-multi-choice-container${lockMs > 0 ? ' response-locked' : ''}" style="
             display: grid;
             grid-template-columns: repeat(${trial.grid_columns}, 1fr);
             gap: ${trial.gap}px;
@@ -86,7 +100,7 @@ class ImageMultiChoicePlugin {
                     border: 3px solid transparent;
                     border-radius: 10px;
                     padding: 20px;
-                    cursor: pointer;
+                    cursor: ${lockMs > 0 ? 'not-allowed' : 'pointer'};
                     transition: all 0.3s ease;
                     background-color: transparent;
                     text-align: center;
@@ -109,22 +123,38 @@ class ImageMultiChoicePlugin {
 
         const style = document.createElement('style');
         style.textContent = `
-            .image-multi-choice-option:hover {
+            .image-multi-choice-container:not(.response-locked) .image-multi-choice-option:hover {
                 border-color: #333 !important;
                 transform: scale(1.05);
             }
         `;
         document.head.appendChild(style);
 
+        const statusEl = display_element.querySelector('.response-lock-status');
+        const container = display_element.querySelector('.image-multi-choice-container');
+        const choices = display_element.querySelectorAll('.image-multi-choice-option');
+
         const finish = (responseIndex, choiceType, rt) => {
             if (trialEnded) return;
             trialEnded = true;
             if (timerHandle) timerHandle.clear();
+            if (lockTimeoutId !== null) clearTimeout(lockTimeoutId);
+
+            let rt_from_unlock = null;
+            if (rt != null) {
+                if (lockMs > 0 && unlockTime != null) {
+                    rt_from_unlock = Math.max(0, Math.round((startTime + rt) - unlockTime));
+                } else {
+                    rt_from_unlock = rt;
+                }
+            }
 
             const trial_data = {
                 rt: rt,
                 response: responseIndex,
                 choice_type: choiceType,
+                lock_ms: lockMs,
+                rt_from_unlock: rt_from_unlock,
                 images: trial.images.map(img => ({
                     src: img.src,
                     color: img.color,
@@ -137,13 +167,28 @@ class ImageMultiChoicePlugin {
             this.jsPsych.finishTrial(trial_data);
         };
 
-        const choices = display_element.querySelectorAll('.image-multi-choice-option');
+        const unlock = () => {
+            if (unlocked || trialEnded) return;
+            unlocked = true;
+            unlockTime = performance.now();
+            if (statusEl) statusEl.textContent = 'Click a face to choose';
+            if (container) container.classList.remove('response-locked');
+            choices.forEach((choice) => {
+                choice.style.cursor = 'pointer';
+            });
+        };
+
         choices.forEach((choice, index) => {
             choice.addEventListener('click', () => {
+                if (!unlocked) return;
                 const rt = Math.round(performance.now() - startTime);
                 finish(index, 'participant', rt);
             });
         });
+
+        if (lockMs > 0) {
+            lockTimeoutId = this.jsPsych.pluginAPI.setTimeout(unlock, lockMs);
+        }
 
         if (trial.trial_duration != null && trial.trial_duration > 0) {
             if (trial.show_timer !== false) {

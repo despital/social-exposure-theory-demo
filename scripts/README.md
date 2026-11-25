@@ -53,7 +53,7 @@ Person-level pipeline testing whether individuation accuracy predicts novel-face
 stereotyping, with and without controlling for encountered-face stereotyping.
 
 ```bash
-python scripts/analyze_accuracy_generalization.py ^
+python scripts/analysis/analyze_accuracy_generalization.py ^
   --input path/to/firebase_export.json ^
   --outdir outputs/accuracy_generalization
 ```

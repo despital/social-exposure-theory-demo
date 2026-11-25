@@ -7,8 +7,10 @@ dist/
 outputs/
 report/
 tools/
+scripts/analysis/
 .vscode/
 src/firebase-config.js
 .claude/settings.local.json
 nul
 INTERNAL_DOCS.md
+docs/Presentation_Outline_Analysis_Agreement.md
