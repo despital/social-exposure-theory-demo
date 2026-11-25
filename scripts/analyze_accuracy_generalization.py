@@ -54,6 +54,11 @@ Usage
 python scripts/analyze_accuracy_generalization.py ^
   --input "C:/Users/22455/Downloads/socialexposuretheory2026-default-rtdb-export.json" ^
   --outdir outputs/accuracy_generalization
+
+Plotting rule
+-------------
+Phase 1 learning curves are plotted by block (design unit) only.
+Never plot by equal-count trial "segments".
 """
 
 from __future__ import annotations
@@ -337,6 +342,24 @@ def compute_person_indices(
                 acc_belief = float(bad.mean() - good.mean()) / 100.0
                 accuracy_source = "phase2_encountered"
 
+        def _acc_within_group(sub: pd.DataFrame) -> float:
+            if sub is None or sub.empty or "probability_punishment" not in sub.columns:
+                return np.nan
+            g = sub.loc[sub["face_is_good"] == True, "probability_punishment"].dropna()
+            b = sub.loc[sub["face_is_good"] == False, "probability_punishment"].dropna()
+            if len(g) == 0 or len(b) == 0:
+                return np.nan
+            return float(b.mean() - g.mean()) / 100.0
+
+        # Between-group Acc contrast on encountered faces (same role coding as
+        # belief stereotypes): Acc(group+) − Acc(group−), each Acc = bad−good.
+        acc_belief_group_diff = np.nan
+        if not enc.empty and "group_role" in enc.columns:
+            acc_pos = _acc_within_group(enc[enc["group_role"] == pos_belief])
+            acc_neg = _acc_within_group(enc[enc["group_role"] == neg_belief])
+            if pd.notna(acc_pos) and pd.notna(acc_neg):
+                acc_belief_group_diff = float(acc_pos - acc_neg)
+
         # Approach individuation on encountered (supplementary; keep slider 0–100 units)
         acc_approach = np.nan
         if not enc.empty:
@@ -351,6 +374,14 @@ def compute_person_indices(
             p1_choices = p1_pid[p1_pid["task"] == "choice"].copy()
         else:
             p1_choices = pd.DataFrame()
+        # Choice exposure imbalance: n(chose red) − n(chose blue)
+        n_chose_red = 0
+        n_chose_blue = 0
+        if not p1_choices.empty and "chosen_face_color" in p1_choices.columns:
+            n_chose_red = int((p1_choices["chosen_face_color"] == "red").sum())
+            n_chose_blue = int((p1_choices["chosen_face_color"] == "blue").sum())
+        choice_color_diff = float(n_chose_red - n_chose_blue)
+
         late = p1_choices[p1_choices["block"] >= 9] if not p1_choices.empty else pd.DataFrame()
         late_excess = np.nan
         if not late.empty:
@@ -388,6 +419,16 @@ def compute_person_indices(
         conf_enc = _mean_conf(enc)
         conf_nov = _mean_conf(nov)
 
+        # Group confidence contrast on encountered faces (parallel to stereotype DVs):
+        # same role coding as belief stereotypes (minority−majority or red−blue), 0–1.
+        conf_group_diff = contrast_means(
+            enc, "confidence_rating", "group_role", pos_belief, neg_belief
+        )
+        if pd.notna(conf_group_diff):
+            conf_group_diff = conf_group_diff / 100.0
+        # Keep legacy name used in fig2-conf / person_indices
+        confidence_diff = conf_group_diff
+
         records.append({
             "participant_id": pid,
             "condition_code": m["condition_code"],
@@ -398,12 +439,16 @@ def compute_person_indices(
             "designed_majority_minority": designed_mm,
             "stereotype_coding": "majority_minority" if designed_mm else "red_minus_blue_exploratory",
             "n_phase1_choices": int(len(p1_choices)),
+            "n_chose_red": n_chose_red,
+            "n_chose_blue": n_chose_blue,
+            "choice_color_diff": choice_color_diff,  # red − blue Phase 1 choices
             "n_phase2_faces": int(faces["face_trial_index"].nunique()) if len(faces) else 0,
             "n_phase3": int(len(p3_sub)),
             "n_encountered": int(len(enc)),
             "n_novel": int(len(nov)),
             "accuracy_source": accuracy_source,
             "accuracy_belief": acc_belief,          # primary: Phase 2 encountered
+            "accuracy_belief_group_diff": acc_belief_group_diff,  # Acc(group+) − Acc(group−)
             "accuracy_belief_phase3": acc_belief_phase3,  # supplementary when available
             "accuracy_approach": acc_approach,      # higher = approach good more than bad
             "late_excess_accuracy": late_excess,    # engagement / learning proxy
@@ -417,6 +462,8 @@ def compute_person_indices(
             "confidence_mean": conf_all,
             "confidence_encountered": conf_enc,
             "confidence_novel": conf_nov,
+            # mean(c|group+) − mean(c|group−) on encountered; same coding as belief stereotypes
+            "confidence_diff": confidence_diff,
         })
 
     return pd.DataFrame(records)
@@ -435,7 +482,8 @@ def apply_exclusions(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         reason = []
         if row["debug_mode"]:
             reason.append("debug_mode")
-        if row["n_phase1_choices"] < 80:
+        # Config A: TOTAL_FACES × EXPOSURES_PER_FACE / FACES_PER_TRIAL = 60
+        if row["n_phase1_choices"] < 60:
             reason.append("incomplete_phase1")
         if row["n_novel"] < 4 or row["n_encountered"] < 4:
             reason.append("incomplete_phase2")
@@ -557,14 +605,13 @@ def _apa_r_label(r: float, p: float) -> str:
 def compute_phase1_segment_accuracy(
     p1: pd.DataFrame,
     participant_ids: list[str] | None = None,
-    n_segments: int | None = None,
 ) -> pd.DataFrame:
     """
-    Raw Phase 1 choice accuracy by segment.
+    Raw Phase 1 choice accuracy by block (design unit).
 
-    Default segments = Phase 1 blocks (design unit). If n_segments is set,
-    trials are split into that many equal-sized bins by trial_number within
-    each participant (then combined across people for the group curve).
+    NOTE (do not reverse): never plot Phase 1 learning by equal-count trial
+    "segments". Always use Phase 1 blocks only. Equal-trial binning was tried
+    earlier and is intentionally not used.
     """
     if p1 is None or p1.empty or "task" not in p1.columns:
         return pd.DataFrame()
@@ -581,33 +628,16 @@ def compute_phase1_segment_accuracy(
     rows = []
     for pid, sub in choices.groupby("participant_id"):
         sub = sub.sort_values(["block", "trial_number"], kind="mergesort")
-        if n_segments is None:
-            for block, bsub in sub.groupby("block"):
-                rows.append({
-                    "participant_id": pid,
-                    "segment": int(block),
-                    "segment_label": f"Block {int(block)}",
-                    "n_trials": int(len(bsub)),
-                    "raw_accuracy": float(bsub["correct"].mean()),
-                    "panel_base_rate": float(bsub["panel_base"].mean()),
-                    "excess_accuracy": float(bsub["correct"].mean() - bsub["panel_base"].mean()),
-                })
-        else:
-            n = len(sub)
-            edges = np.linspace(0, n, n_segments + 1, dtype=int)
-            for s in range(n_segments):
-                chunk = sub.iloc[edges[s]:edges[s + 1]]
-                if chunk.empty:
-                    continue
-                rows.append({
-                    "participant_id": pid,
-                    "segment": s + 1,
-                    "segment_label": f"Seg {s + 1}",
-                    "n_trials": int(len(chunk)),
-                    "raw_accuracy": float(chunk["correct"].mean()),
-                    "panel_base_rate": float(chunk["panel_base"].mean()),
-                    "excess_accuracy": float(chunk["correct"].mean() - chunk["panel_base"].mean()),
-                })
+        for block, bsub in sub.groupby("block"):
+            rows.append({
+                "participant_id": pid,
+                "segment": int(block),
+                "segment_label": f"Block {int(block)}",
+                "n_trials": int(len(bsub)),
+                "raw_accuracy": float(bsub["correct"].mean()),
+                "panel_base_rate": float(bsub["panel_base"].mean()),
+                "excess_accuracy": float(bsub["correct"].mean() - bsub["panel_base"].mean()),
+            })
     return pd.DataFrame(rows)
 
 
@@ -629,15 +659,18 @@ def plot_phase1_learning_curve(
     p1: pd.DataFrame,
     outdir: Path,
     participant_ids: list[str] | None = None,
-    n_segments: int | None = None,
-    outfile: str = "fig_phase1_learning_curve.png",
-    csv_prefix: str = "phase1_segment_accuracy",
+    outfile: str = "fig_phase1_learning_curve_by_block.png",
+    csv_prefix: str = "phase1_segment_accuracy_by_block",
 ):
-    """Phase 1 learning curve: light individual lines + group mean with 95% CI."""
+    """
+    Phase 1 learning curve by block: light individual lines + group mean with 95% CI.
+
+    NOTE (do not reverse): never plot by equal-count trial segments — blocks only.
+    """
     fig_dir = outdir / "figures"
     fig_dir.mkdir(parents=True, exist_ok=True)
 
-    seg = compute_phase1_segment_accuracy(p1, participant_ids=participant_ids, n_segments=n_segments)
+    seg = compute_phase1_segment_accuracy(p1, participant_ids=participant_ids)
     if seg.empty:
         return None
 
@@ -650,11 +683,7 @@ def plot_phase1_learning_curve(
     summary = summary.merge(base_by_seg, on="segment")
     summary.to_csv(outdir / f"{csv_prefix}_group.csv", index=False)
 
-    x_lab = (
-        "Phase 1 Block"
-        if n_segments is None
-        else f"Phase 1 Segment (1–{n_segments})"
-    )
+    x_lab = "Phase 1 Block"
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.0))
 
     # Slight improvement over grey spaghetti: lines only (no markers), so
@@ -719,6 +748,34 @@ def plot_phase1_learning_curve(
     _savefig(fig, fig_dir / outfile)
     plt.close(fig)
     return fig_dir / Path(outfile).with_suffix(".png")
+
+
+def _fwl_residuals(y: np.ndarray, x: np.ndarray, Z: np.ndarray) -> tuple[np.ndarray, np.ndarray] | None:
+    """
+    Frisch–Waugh–Lovell: residualize y and x on columns of Z (plus intercept).
+    Returns (x_res, y_res), or None if underdetermined (N <= n_controls+1).
+    """
+    y = np.asarray(y, dtype=float)
+    x = np.asarray(x, dtype=float)
+    Z = np.atleast_2d(np.asarray(Z, dtype=float))
+    if Z.ndim == 1:
+        Z = Z.reshape(-1, 1)
+    n, k = Z.shape
+    # intercept + k controls → need n > k+1 for residual df
+    if n <= k + 1:
+        return None
+    design = np.column_stack([np.ones(n), Z])
+    # drop non-finite rows
+    mask = np.isfinite(y) & np.isfinite(x) & np.all(np.isfinite(design), axis=1)
+    y, x, design = y[mask], x[mask], design[mask]
+    if len(y) <= design.shape[1]:
+        return None
+    # rank check (collinear controls)
+    if np.linalg.matrix_rank(design) < design.shape[1]:
+        return None
+    beta_y, _, _, _ = np.linalg.lstsq(design, y, rcond=None)
+    beta_x, _, _, _ = np.linalg.lstsq(design, x, rcond=None)
+    return x - design @ beta_x, y - design @ beta_y
 
 
 def _scatter_with_fit(
@@ -878,6 +935,171 @@ def make_figures(df: pd.DataFrame, outdir: Path):
     sns.despine(fig=fig)
     fig.tight_layout()
     _savefig(fig, fig_dir / "fig2_partial_accuracy_vs_novel.png")
+    plt.close(fig)
+
+    # Fig 2-groupAcc: FWL like Fig 2, but X = between-group Acc contrast
+    # Acc(group+) − Acc(group−), each within-group Acc = mean(p̂|bad) − mean(p̂|good).
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.0))
+    for ax, dv, enc in [
+        (axes[0], "novel_belief_stereotype", "encountered_belief_stereotype"),
+        (axes[1], "novel_approach_stereotype", "encountered_approach_stereotype"),
+    ]:
+        cols = ["accuracy_belief_group_diff", dv, enc]
+        if any(c not in df.columns for c in cols):
+            ax.text(0.5, 0.5, "Missing columns", ha="center", va="center",
+                    transform=ax.transAxes)
+            continue
+        sub = df[cols].dropna()
+        y_lab = (
+            "Belief bias about new faces\n(after removing bias about known faces)"
+            if "belief" in dv else
+            "Approach bias toward new faces\n(after removing bias about known faces)"
+        )
+        x_lab = (
+            "Group difference in learning Acc (known faces)\n"
+            "(after removing bias about known faces)"
+        )
+        if (
+            len(sub) >= 3
+            and sub[enc].std() > 0
+            and sub["accuracy_belief_group_diff"].std() > 0
+        ):
+            b_y = np.polyfit(sub[enc], sub[dv], 1)
+            b_x = np.polyfit(sub[enc], sub["accuracy_belief_group_diff"], 1)
+            y_res = sub[dv] - (b_y[0] * sub[enc] + b_y[1])
+            x_res = sub["accuracy_belief_group_diff"] - (b_x[0] * sub[enc] + b_x[1])
+            _scatter_with_fit(ax, x_res, y_res, x_lab, y_lab)
+        else:
+            ax.text(0.5, 0.5, "Insufficient data", ha="center", va="center",
+                    transform=ax.transAxes)
+            ax.set_xlabel(x_lab)
+            ax.set_ylabel(y_lab)
+    _panel_letter(axes[0], "a")
+    _panel_letter(axes[1], "b")
+    sns.despine(fig=fig)
+    fig.tight_layout()
+    _savefig(fig, fig_dir / "fig2_partial_group_acc_diff_vs_novel.png")
+    plt.close(fig)
+
+    # Fig 2-conf: FWL like Fig 2, but X = group mean-confidence difference
+    # on encountered faces (same group coding as stereotype DVs), not Acc.
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.0))
+    for ax, dv, enc in [
+        (axes[0], "novel_belief_stereotype", "encountered_belief_stereotype"),
+        (axes[1], "novel_approach_stereotype", "encountered_approach_stereotype"),
+    ]:
+        cols = ["confidence_diff", dv, enc]
+        if any(c not in df.columns for c in cols):
+            ax.text(0.5, 0.5, "Missing columns", ha="center", va="center",
+                    transform=ax.transAxes)
+            continue
+        sub = df[cols].dropna()
+        y_lab = (
+            "Belief bias about new faces\n(after removing bias about known faces)"
+            if "belief" in dv else
+            "Approach bias toward new faces\n(after removing bias about known faces)"
+        )
+        x_lab = (
+            "Group confidence difference (known faces)\n"
+            "(after removing bias about known faces)"
+        )
+        if len(sub) >= 3 and sub[enc].std() > 0 and sub["confidence_diff"].std() > 0:
+            b_y = np.polyfit(sub[enc], sub[dv], 1)
+            b_x = np.polyfit(sub[enc], sub["confidence_diff"], 1)
+            y_res = sub[dv] - (b_y[0] * sub[enc] + b_y[1])
+            x_res = sub["confidence_diff"] - (b_x[0] * sub[enc] + b_x[1])
+            _scatter_with_fit(ax, x_res, y_res, x_lab, y_lab)
+        else:
+            ax.text(0.5, 0.5, "Insufficient data", ha="center", va="center",
+                    transform=ax.transAxes)
+            ax.set_xlabel(x_lab)
+            ax.set_ylabel(y_lab)
+    _panel_letter(axes[0], "a")
+    _panel_letter(axes[1], "b")
+    sns.despine(fig=fig)
+    fig.tight_layout()
+    _savefig(fig, fig_dir / "fig2_partial_confidence_diff_vs_novel.png")
+    plt.close(fig)
+
+    # Fig 2d: FWL partial residuals controlling for encountered attitude AND
+    # Phase 1 choice-color imbalance (n_red − n_blue).
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.0))
+    for ax, dv, enc in [
+        (axes[0], "novel_belief_stereotype", "encountered_belief_stereotype"),
+        (axes[1], "novel_approach_stereotype", "encountered_approach_stereotype"),
+    ]:
+        cols = ["accuracy_belief", dv, enc, "choice_color_diff"]
+        if any(c not in df.columns for c in cols):
+            ax.text(0.5, 0.5, "Missing columns", ha="center", va="center",
+                    transform=ax.transAxes)
+            continue
+        sub = df[cols].dropna()
+        Z = sub[[enc, "choice_color_diff"]].to_numpy(dtype=float)
+        res = _fwl_residuals(
+            sub[dv].to_numpy(dtype=float),
+            sub["accuracy_belief"].to_numpy(dtype=float),
+            Z,
+        )
+        y_lab = (
+            "Belief bias about new faces\n(after removing known-face bias + choice imbalance)"
+            if "belief" in dv else
+            "Approach bias toward new faces\n(after removing known-face bias + choice imbalance)"
+        )
+        x_lab = "Learning accuracy\n(after removing known-face bias + choice imbalance)"
+        if res is None:
+            ax.text(
+                0.5, 0.5,
+                f"Insufficient N for 2 controls\n(N = {len(sub)}; need N ≥ 4)",
+                ha="center", va="center", transform=ax.transAxes, fontsize=9,
+            )
+            ax.set_xlabel(x_lab)
+            ax.set_ylabel(y_lab)
+        else:
+            x_res, y_res = res
+            _scatter_with_fit(ax, x_res, y_res, x_lab, y_lab)
+    _panel_letter(axes[0], "a")
+    _panel_letter(axes[1], "b")
+    sns.despine(fig=fig)
+    fig.tight_layout()
+    _savefig(fig, fig_dir / "fig2d_partial_acc_vs_novel_ctrl_attitude_and_choice_diff.png")
+    plt.close(fig)
+
+    # Fig 2e: FWL controlling only for Phase 1 choice-color imbalance
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.0))
+    for ax, dv in [
+        (axes[0], "novel_belief_stereotype"),
+        (axes[1], "novel_approach_stereotype"),
+    ]:
+        cols = ["accuracy_belief", dv, "choice_color_diff"]
+        if any(c not in df.columns for c in cols):
+            ax.text(0.5, 0.5, "Missing columns", ha="center", va="center",
+                    transform=ax.transAxes)
+            continue
+        sub = df[cols].dropna()
+        res = _fwl_residuals(
+            sub[dv].to_numpy(dtype=float),
+            sub["accuracy_belief"].to_numpy(dtype=float),
+            sub[["choice_color_diff"]].to_numpy(dtype=float),
+        )
+        y_lab = (
+            "Belief bias about new faces\n(after removing red−blue choice imbalance)"
+            if "belief" in dv else
+            "Approach bias toward new faces\n(after removing red−blue choice imbalance)"
+        )
+        x_lab = "Learning accuracy\n(after removing red−blue choice imbalance)"
+        if res is None or sub["choice_color_diff"].std() == 0:
+            ax.text(0.5, 0.5, "Insufficient data", ha="center", va="center",
+                    transform=ax.transAxes)
+            ax.set_xlabel(x_lab)
+            ax.set_ylabel(y_lab)
+        else:
+            x_res, y_res = res
+            _scatter_with_fit(ax, x_res, y_res, x_lab, y_lab)
+    _panel_letter(axes[0], "a")
+    _panel_letter(axes[1], "b")
+    sns.despine(fig=fig)
+    fig.tight_layout()
+    _savefig(fig, fig_dir / "fig2e_partial_acc_vs_novel_ctrl_choice_diff.png")
     plt.close(fig)
 
     # Fig 2b: Y-only residualization
@@ -1188,6 +1410,38 @@ For belief (a) and approach (b), both learning accuracy and bias about new faces
 
 ---
 
+**Figure 3-groupAcc.** Between-group Acc contrast variant of Figure 3.
+
+Same FWL display, but learning accuracy is replaced by the between-group difference in within-group individuation on encountered faces: Acc(group+) − Acc(group−), where each Acc = mean *p̂*(punish | bad) − mean *p̂*(punish | good). Group coding matches belief stereotypes. Both axes are residualized on evaluative bias about known faces.
+
+*File:* `figures/fig2_partial_group_acc_diff_vs_novel.png`
+
+---
+
+**Figure 3-conf.** Group-confidence-difference variant of Figure 3.
+
+Same FWL display, but learning accuracy is replaced by the group mean-confidence difference on encountered faces (same group coding as belief stereotypes: minority−majority or red−blue). Both axes are still residualized on evaluative bias about known faces.
+
+*File:* `figures/fig2_partial_confidence_diff_vs_novel.png`
+
+---
+
+**Figure 3b.** Acc–novel link after removing known-face bias and Phase 1 choice-color imbalance.
+
+Same FWL display as Figure 3, but both axes are residualized on (i) bias about known faces and (ii) Phase 1 choice-color imbalance (`n_chose_red − n_chose_blue`). Requires *N* ≥ 4.
+
+*File:* `figures/fig2d_partial_acc_vs_novel_ctrl_attitude_and_choice_diff.png`
+
+---
+
+**Figure 3c.** Acc–novel link after removing Phase 1 choice-color imbalance only.
+
+FWL residuals for belief (a) and approach (b) after removing shared variance with `n_chose_red − n_chose_blue` only (not known-face bias).
+
+*File:* `figures/fig2e_partial_acc_vs_novel_ctrl_choice_diff.png`
+
+---
+
 **Figure S1.** Sensitivity check: only bias about new faces is adjusted.
 
 Bias about new faces is adjusted for bias about known faces, then plotted against raw learning accuracy for belief (a) and approach (b). Unlike Figure 3, learning accuracy is not residualized. Lines and shaded bands are OLS fits with 95% confidence bands.
@@ -1222,17 +1476,9 @@ Heatmap of Pearson correlations among learning accuracy, late Phase 1 accuracy a
 
 **Figure 7.** Phase 1 learning curve by block.
 
-Choice accuracy (a) and accuracy above the chance baseline (b) across Phase 1 blocks. Light grey lines show individual participants (no markers, to avoid ambiguous overlapping points). The blue line is the group mean; the shaded band is its 95% confidence interval. In (a), the dashed line is the chance baseline (share of good faces on the trial). In (b), the dashed line is at chance baseline (0).
+Choice accuracy (a) and accuracy above the chance baseline (b) across Phase 1 blocks. Light grey lines show individual participants (no markers, to avoid ambiguous overlapping points). The blue line is the group mean; the shaded band is its 95% confidence interval. In (a), the dashed line is the chance baseline (share of good faces on the trial). In (b), the dashed line is at chance baseline (0). Learning curves are always plotted by Phase 1 block (design unit), never by equal-count trial segments.
 
 *File:* `figures/fig_phase1_learning_curve_by_block.png`
-
----
-
-**Figure S2.** Phase 1 learning curve in four equal trial segments.
-
-Same conventions as Figure 7, with trials binned into four equal-count segments within participant.
-
-*File:* `figures/fig_phase1_learning_curve_4segments.png`
 """
     (outdir / "figure_captions.md").write_text(text, encoding="utf-8")
 
@@ -1567,16 +1813,11 @@ def run_pipeline(input_path: Path, outdir: Path):
     write_descriptives(analyzed_for_figs, outdir)
     write_figure_captions(outdir, n=len(analyzed_for_figs))
     analyzed_ids = analyzed["participant_id"].tolist() if len(analyzed) else None
-    # Block-level segments (design unit) + coarser equal trial bins
+    # Phase 1 learning: blocks only — never equal-count trial segments
     plot_phase1_learning_curve(
-        p1, outdir, participant_ids=analyzed_ids, n_segments=None,
+        p1, outdir, participant_ids=analyzed_ids,
         outfile="fig_phase1_learning_curve_by_block.png",
         csv_prefix="phase1_segment_accuracy_by_block",
-    )
-    plot_phase1_learning_curve(
-        p1, outdir, participant_ids=analyzed_ids, n_segments=4,
-        outfile="fig_phase1_learning_curve_4segments.png",
-        csv_prefix="phase1_segment_accuracy_4segments",
     )
     write_report(outdir, len(meta), analyzed, excluded, corr_table, model_table)
 

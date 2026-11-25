@@ -412,15 +412,13 @@ export function getURLParams(jsPsych) {
  * each face on a continuous approach-avoidance slider using jsPsych's
  * html-slider-response plugin. No feedback is provided.
  *
- * Sampling is always balanced by both source and group:
- *   - PHASE2_TOTAL_TRIALS / 4 novel red faces
- *   - PHASE2_TOTAL_TRIALS / 4 novel blue faces
- *   - PHASE2_TOTAL_TRIALS / 4 encountered red faces (from Phase 1 pool)
- *   - PHASE2_TOTAL_TRIALS / 4 encountered blue faces (from Phase 1 pool)
+ * Composition (default):
+ *   - ALL Phase 1 faces as encountered (typically 20)
+ *   - PHASE2_NOVEL_PER_COLOR novel red + same for blue (default 5 + 5)
+ *   - Shuffled together → default total 30 (= PHASE2_TOTAL_TRIALS)
  *
- * All sampling is without replacement. The minority group in majority-minority
- * conditions has 5 unique faces; the per-bucket count (default 5) uses the
- * full minority set.
+ * Debug: if CONFIG.PHASE2_DEBUG_ENCOUNTERED_PER_COLOR is set, subsample that
+ * many encountered faces per color instead of using the full Phase 1 pool.
  *
  * Each trial object looks like:
  *   {
@@ -436,23 +434,28 @@ export function getURLParams(jsPsych) {
  * @returns {Array<object>} A shuffled array of trial objects (one face per trial).
  */
 export function generatePhase2Trials(novelFaces, faces, jsPsych) {
-    const perBucket = CONFIG.PHASE2_TOTAL_TRIALS / 4;
+    const nNovel = CONFIG.PHASE2_NOVEL_PER_COLOR;
 
-    // Novel faces — sample perBucket from each color
+    // Novel faces — fixed per-color count
     const novelRed  = jsPsych.randomization.sampleWithoutReplacement(
-        novelFaces.filter(f => f.color === 'red'), perBucket
+        novelFaces.filter(f => f.color === 'red'), nNovel
     );
     const novelBlue = jsPsych.randomization.sampleWithoutReplacement(
-        novelFaces.filter(f => f.color === 'blue'), perBucket
+        novelFaces.filter(f => f.color === 'blue'), nNovel
     );
 
-    // Encountered faces — sample perBucket from each color
-    const encRed  = jsPsych.randomization.sampleWithoutReplacement(
-        faces.filter(f => f.color === 'red'), perBucket
-    );
-    const encBlue = jsPsych.randomization.sampleWithoutReplacement(
-        faces.filter(f => f.color === 'blue'), perBucket
-    );
+    // Encountered faces — full Phase 1 pool (optionally capped in debug)
+    let encRed  = faces.filter(f => f.color === 'red');
+    let encBlue = faces.filter(f => f.color === 'blue');
+    const encCap = CONFIG.PHASE2_DEBUG_ENCOUNTERED_PER_COLOR;
+    if (encCap != null && encCap > 0) {
+        encRed  = jsPsych.randomization.sampleWithoutReplacement(
+            encRed, Math.min(encCap, encRed.length)
+        );
+        encBlue = jsPsych.randomization.sampleWithoutReplacement(
+            encBlue, Math.min(encCap, encBlue.length)
+        );
+    }
 
     const novelTrials      = [...novelRed, ...novelBlue].map(face => ({ face, face_source: 'novel',      phase: 2 }));
     const encounteredTrials = [...encRed,  ...encBlue ].map(face => ({ face, face_source: 'encountered', phase: 2 }));

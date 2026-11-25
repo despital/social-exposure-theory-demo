@@ -137,13 +137,18 @@ export const CONFIG = {
     ENABLE_RESPONSE_TIMERS: false,
 
     // Phase 2 parameters (single-face slider design)
-    // Total faces rated per session (10 novel + 10 encountered); adjustable.
-    // With 3 questions per face (approach-avoidance, probability, confidence),
-    // 20 faces ≈ 12 min — comparable to Phase 1 (60 trials × ~5 s ≈ 5 min).
-    // Ratio: 20 learned faces (Phase 1) : 20 Phase-2 ratings = 1:1 identities vs ratings.
-    // Minority size (5) equals the per-color Phase 2 bucket (PHASE2_TOTAL_TRIALS/4 = 5).
-    PHASE2_TOTAL_TRIALS: 20,
-    // Red:blue split per Phase 2 Exposure level (must sum to 1.0)
+    // Composition: ALL Phase 1 faces (encountered) + novel faces mixed in.
+    // Default: 20 encountered + 5 novel red + 5 novel blue = 30 faces.
+    // With 3 questions per face ≈ 15–18 min for Phase 2.
+    PHASE2_NOVEL_PER_COLOR: 5,
+    // Total = TOTAL_FACES + 2 * PHASE2_NOVEL_PER_COLOR (kept explicit for progress / logging)
+    PHASE2_TOTAL_TRIALS: 30,
+    // Debug-only cap: if set, subsample this many encountered faces per color
+    // instead of using the full Phase 1 pool. Null/undefined = use all.
+    PHASE2_DEBUG_ENCOUNTERED_PER_COLOR: null,
+    // Red:blue split per Phase 2 Exposure level (must sum to 1.0).
+    // Note: novel sampling is currently fixed at PHASE2_NOVEL_PER_COLOR each;
+    // this map is retained for condition labels / future novel rebalancing.
     PHASE2_EXPOSURE_RATIOS: {
         'equal':         { red: 0.50, blue: 0.50 },
         'majority-red':  { red: 0.80, blue: 0.20 },

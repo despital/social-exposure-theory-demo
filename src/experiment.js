@@ -159,13 +159,17 @@ export async function run({ assetPaths, input = {}, environment, title, version 
     const novelFaces = generateNovelFaces(jsPsych);
 
     // Generate Phase 2 trials (single-face slider design using novel faces)
-    const originalPhase2Total = CONFIG.PHASE2_TOTAL_TRIALS;
+    const originalPhase2Novel = CONFIG.PHASE2_NOVEL_PER_COLOR;
+    const originalPhase2EncCap = CONFIG.PHASE2_DEBUG_ENCOUNTERED_PER_COLOR;
     if (debugMode && CONFIG.DEBUG_MODE.REDUCE_PHASE2_TRIALS) {
-        CONFIG.PHASE2_TOTAL_TRIALS = 6; // 3 red + 3 blue in debug
-        console.log('Debug mode: Reduced Phase 2 to ' + CONFIG.PHASE2_TOTAL_TRIALS + ' trials');
+        // Debug: 1 novel/color + 2 encountered/color (≈ 6 faces), not full 30
+        CONFIG.PHASE2_NOVEL_PER_COLOR = 1;
+        CONFIG.PHASE2_DEBUG_ENCOUNTERED_PER_COLOR = 2;
+        console.log('Debug mode: Reduced Phase 2 (1 novel + 2 encountered per color)');
     }
     const phase2Trials = generatePhase2Trials(novelFaces, faces, jsPsych);
-    CONFIG.PHASE2_TOTAL_TRIALS = originalPhase2Total; // Restore original value
+    CONFIG.PHASE2_NOVEL_PER_COLOR = originalPhase2Novel;
+    CONFIG.PHASE2_DEBUG_ENCOUNTERED_PER_COLOR = originalPhase2EncCap;
 
     let phase2Score = 0;
     let phase2TrialCount = 0;

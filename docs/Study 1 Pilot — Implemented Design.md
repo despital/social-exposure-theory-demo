@@ -76,13 +76,12 @@ Face-to-color assignment is randomized per participant.
 
 ## Phase 2 — Implemented
 
-- **Stimuli:** 120 novel face identities (not seen in Phase 1); 60 red, 60 blue per session; each has hidden good/bad (70% good, 30% bad per color).
-- **Trial:** One novel face per trial (e.g. 300×300 px, border color = group). Slider 0–100, labels “Avoid”, “Neutral”, “Approach”; starts at 50; **require_movement: true**. Prompt: “How willing are you to approach or avoid this person?” Button: “Submit”.
-- **No feedback** during Phase 2; no outcome shown per trial.
-- **Scoring (hidden, for bonus):** Based on slider vs good/bad:
+- **Composition:** **All 20 Phase 1 (encountered) faces** mixed with **5 novel red + 5 novel blue** (30 faces total; shuffled). Novel identities drawn from the 120-face novel pool (60 red / 60 blue available); each novel face has a hidden good/bad label (same 80/20 scheme as Phase 1).
+- **Trial:** One face per trial (encountered or novel). Three questions per face: approach–avoid slider, punishment-probability slider, confidence. No trial-by-trial outcome feedback.
+- **Scoring (hidden, for bonus):** Based on approach slider vs good/bad:
   - **Good face:** slider above 50 (approach) → +1; below 50 (avoid) → -5; exactly 50 → 0.
   - **Bad face:** slider below 50 (avoid) → +1; above 50 (approach) → -5; exactly 50 → 0.
-- **Trial count:** 60 trials total (50/50 red–blue in pilot). In debug, this can be reduced (e.g. 6).
+- **Trial count:** 30 faces × 3 questions. In debug, reduced (1 novel + 2 encountered per color).
 - **Phase 2 score** is summed and shown only at the end (together with Phase 1 and total bonus).
 
 ---

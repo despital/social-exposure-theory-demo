@@ -32,6 +32,14 @@ Decisions are listed newest-first. Each entry states **what** was decided and **
 
 ---
 
+## 2026-11-24 — Phase 2: all Phase 1 faces + 5 novel per color
+
+**Decision:** Phase 2 now rates **all 20 Phase 1 (encountered) faces** mixed with **5 novel red + 5 novel blue** (30 faces total, shuffled). Config: `PHASE2_NOVEL_PER_COLOR: 5`, `PHASE2_TOTAL_TRIALS: 30`.
+
+**Why:** Subsampling 5 encountered faces per color left some sessions without both a good and a bad face within a color, blocking within-group Acc contrasts (Acc_red − Acc_blue). Using the full Phase 1 pool guarantees the designed good/bad counts per color are available for individuation indices while keeping a fixed novel set for generalization.
+
+---
+
 ## 2026-05-19 — Deploy procedure: stimuli must be copied separately
 
 **Decision:** Added explicit `cp -r dist/stimuli/faces/. stimuli/faces/` step to the gh-pages deploy procedure in CLAUDE.md.
